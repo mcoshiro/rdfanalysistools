@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string_view>
 #include <string>
 #include <set>
@@ -33,32 +34,19 @@ void SampleCollection::add(SampleWrapper sample, int flag) {
  * method to define data frame columns, see RInterface::Define
  * flags argument can be used to only define colums for certain samples
  */
-void SampleCollection::define(std::string_view name, std::string_view expression, std::set<int> flags) {
-	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
-		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
-			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression);
-		}
-	}
-}
-
-/**
- * method to define data frame columns, see RInterface::Define
- * flags argument can be used to only define colums for certain samples
- */
-template<typename F>
-void SampleCollection::define(std::string_view name, F expression, const ROOT::Detail::RDF::ColumnNames_t & columns, std::set<int> flags) {
-	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
-		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
-			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression, columns);
-		}
-	}
-}
+//void SampleCollection::define(const char* name, const char* expression, std::set<int> flags) {
+//	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+//		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
+//			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression);
+//		}
+//	}
+//}
 
 /**
  * method to filter data frames, see RInterface::Filter
  * flags argument can be used to only filter certain samples
  */
-void SampleCollection::filter(std::string expression, std::set<int> flags, std::string selection_description) {
+void SampleCollection::filter(std::string expression, std::string selection_description, std::set<int> flags) {
 	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
 		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
 			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Filter(expression);
@@ -77,11 +65,13 @@ void SampleCollection::filter(std::string expression, std::set<int> flags, std::
  */
 HistogramCollection SampleCollection::book_histogram(RegionCollection regions, int nbins, double xlow, double xhigh, std::string variable, std::string_view weight, std::string description) {
 	std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> histograms;
+	std::vector<SampleWrapper*> sample_pointers;
 	std::string internal_description = description;
 	if (description=="") internal_description = variable;
 	//loop over samples
 	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
 		histograms.push_back(std::vector<ROOT::RDF::RResultPtr<TH1D>>());
+		sample_pointers.push_back(&samples[sample_idx]);
 		//loop over regions
 		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
 			//filter sample to region
@@ -90,7 +80,14 @@ HistogramCollection SampleCollection::book_histogram(RegionCollection regions, i
 				("hist_"+variable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)).c_str(),
 				(description+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+description).c_str(),
 				nbins,xlow,xhigh},variable,weight));
+			//debug printouts
+			if (false) {
+				std::cout << "DEBUG: histograms[" << sample_idx << "].push_back(region_data_frame.Histo1D({"
+				<< "(hist_"+variable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)+").c_str(),"
+				<< "("+description+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+description+").c_str(),"
+				<< nbins << "," << xlow << "," << xhigh << "}," << variable << "," << weight << "));" << std::endl;
+			}
 		}
 	}
-	return HistogramCollection(variable, description, histograms);
+	return HistogramCollection(variable, description, histograms, sample_pointers, regions);
 }

@@ -15,7 +15,8 @@ class SampleWrapper {
 	private:
 		std::vector<std::string> sample_filenames;
 		std::vector<SampleWrapper*> sub_samples;
-		ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void> *sample_data_frame;
+		ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void> sample_data_frame;
+
 	public:
 		bool is_composite_sample;
 		short sample_color;
@@ -26,22 +27,17 @@ class SampleWrapper {
 		/**
 		 * constructor for adding multiple filenames
 		 */
-		SampleWrapper(std::string i_sample_name, std::vector<std::string> i_sample_filenames, short i_sample_color, std::string i_sample_description="", bool i_is_data=false);
+		SampleWrapper(std::string i_sample_name, std::vector<std::string> i_sample_filenames, short i_sample_color, std::string i_sample_description="", bool i_is_data=false, const char *tree_name="tree");
 
 		/**
 		 * constructor for samples with a single name
 		 */
-		SampleWrapper(std::string i_sample_name, std::string i_sample_filename, short i_sample_color, std::string i_sample_description="", bool i_is_data=false);
+		SampleWrapper(std::string i_sample_name, std::string i_sample_filename, short i_sample_color, std::string i_sample_description="", bool i_is_data=false, const char* tree_name="tree");
 
 		/**
 		 * constructor for combining other SampleWrappers
 		 */
-		SampleWrapper(std::string i_sample_name, std::vector<SampleWrapper*> i_sub_samples, short i_sample_color, std::string i_sample_description="", bool i_is_data=false);
-
-		/**
-		 * destructor
-		 */
-		~SampleWrapper();
+		//SampleWrapper(std::string i_sample_name, std::vector<SampleWrapper*> i_sub_samples, short i_sample_color, std::string i_sample_description="", bool i_is_data=false);
 
 		/**
 		 * internal RDataFrame object

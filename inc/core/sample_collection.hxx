@@ -36,25 +36,27 @@ class SampleCollection {
 		 * method to define data frame columns, see RInterface::Define
 		 * flags argument can be used to only define colums for certain samples
 		 */
-		void define(std::string_view name, std::string_view expression, std::set<int> flags={});
+		//void define(const char* name, const char* expression, std::set<int> flags={});
 
 		/**
 		 * method to define data frame columns, see RInterface::Define
 		 * flags argument can be used to only define colums for certain samples
 		 */
 		template<typename F>
-		void define(std::string_view name, F expression, const ROOT::Detail::RDF::ColumnNames_t & columns={}, std::set<int> flags={});
+		void define(const char* name, F expression, std::vector<std::string> columns, std::set<int> flags={});
 
 		/**
 		 * method to filter data frames, see RInterface::Filter
 		 * flags argument can be used to only filter certain samples
 		 */
-		void filter(std::string expression, std::set<int> flags={}, std::string baseline_selection_description="");
+		void filter(std::string expression, std::string baseline_selection_description="", std::set<int> flags={});
 
 		/**
 		 * method to make 1d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo1D
 		 */
 		HistogramCollection book_histogram(RegionCollection regions, int nbins, double xlow, double xhigh, std::string variable, std::string_view weight, std::string description="");
 };
+
+#include "../../src/core/sample_collection.tpp"
 
 #endif
