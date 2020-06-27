@@ -54,7 +54,22 @@ class SampleCollection {
 		/**
 		 * method to make 1d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo1D
 		 */
-		HistogramCollection book_histogram(RegionCollection regions, int nbins, double xlow, double xhigh, std::string variable, std::string_view weight, std::string description="");
+		HistogramCollection book_1d_histogram(RegionCollection regions, int nbins, double xlow, double xhigh, std::string variable, std::string description, std::string_view weight);
+
+		/**
+		 * method to make 1d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo1D
+		 */
+		HistogramCollection book_1d_efficiency_plot(RegionCollection regions, int nbins, double xlow, double xhigh, std::string variable, std::string description, std::string_view weight, std::string numerator_cut, std::string numerator_description);
+
+		/**
+		 * method to make 2d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo2D
+		 */
+		HistogramCollection book_2d_histogram(RegionCollection regions, int xnbins, double xlow, double xhigh, std::string xvariable, std::string xdescription, int ynbins, double ylow, double yhigh, std::string yvariable, std::string ydescription, std::string_view weight);
+
+		/**
+		 * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
+		 */
+		HistogramCollection book_2d_efficiency_plot(RegionCollection regions, int xnbins, double xlow, double xhigh, std::string xvariable, std::string xdescription, int ynbins, double ylow, double yhigh, std::string yvariable, std::string ydescription, std::string_view weight, std::string numerator_cut, std::string numerator_description);
 };
 
 #include "../../src/core/sample_collection.tpp"

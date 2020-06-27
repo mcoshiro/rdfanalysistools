@@ -35,21 +35,45 @@ bool sort_by_maximum(HistogramAndStyle hist_a, HistogramAndStyle hist_b);
 /**
  * class to hold a collection of booked histograms
  * equipped with methods for drawing said histograms
+ * also can be used for ratios/efficiency plots
  */
 class HistogramCollection {
 	private:
 		std::string name;
+		std::string yname;
 		std::string description;
+		std::string ydescription;
 		std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> histograms;
+		std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> twodim_histograms;
+		std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> denominator_histograms;
+		std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> twodim_denominator_histograms;
 		std::vector<SampleWrapper*> samples;
 		RegionCollection regions;
 		float luminosity;
+		bool draw_log;
+		bool is_2d;
+		bool is_efficiency;
 
 	public:
 		/**
-		 * constructor to generate collection from a vector of vectors
+		 * constructor to generate collection from a vector of vectors, for 1d histograms
 		 */
 		HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+
+		/**
+		 * constructor to generate collection from a vector of vectors for 1d efficiencies
+		 */
+		HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+
+		/**
+		 * constructor to generate collection from a vector of vectors for 2d histograms
+		 */
+		HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+
+		/**
+		 * constructor to generate collection from a vector of vectors for 2d efficiencies
+		 */
+		HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
 
 		/**
 		 * function to set luminosity
@@ -57,9 +81,30 @@ class HistogramCollection {
 		void set_luminosity(float i_luminosity);
 
 		/**
-		 * function to draw several TH1's on top of each other
+		 * function to draw several TH1's overlayed on each other
 		 */
 		void overlay_1d_histograms();
+
+		/**
+		 * function to set log y
+		 */
+		void set_draw_log();
+
+		/**
+		 * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
+		 */
+		void stack_1d_histograms(bool sort_histograms=true);
+
+		/**
+		 * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
+		 * additionally, draw a data/MC ratio plot
+		 */
+		void stack_ratio_1d_histograms(bool sort_histograms=true);
+
+		/**
+		 * function to draw several TH2's separately
+		 */
+		void draweach_2d_histograms();
 };
 
 #endif

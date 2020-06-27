@@ -12,11 +12,6 @@
 #include "../../inc/core/region_collection.hxx"
 #include "../../inc/core/histogram_collection.hxx"
 
-enum Flag {
-	mc_1 = 1,
-	mc_2 = 2
-};
-
 //helper functions
 int el_n(unsigned int lep_n, ROOT::VecOps::RVec<int> lep_type) {
 	int r_el_n = 0;
@@ -150,18 +145,26 @@ float zcand_m(unsigned int lep_n, ROOT::VecOps::RVec<unsigned int> lep_type, ROO
 	return r_zcand_m;
 }
 
+//flag enum
+enum Flag {
+	mc_1 = 1,
+	mc_2 = 2,
+	data = 3
+};
+
 int main() {
 	//ROOT::EnableImplicitMT();
 	std::cout << "DEBUG: starting" << std::endl;
 	SampleWrapper wz1("wz1","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz1",false,"mini");
 	SampleWrapper wz2("wz2","/homes/oshiro/trees/mc_105987.WZ.root",kBlue,"wz2",false,"mini");
+	SampleWrapper wz_data("wz_data","/homes/oshiro/trees/mc_105987.WZ.root",kBlack,"wz_data",true,"mini");
 	std::cout << "DEBUG: making SampleCollection" << std::endl;
 	SampleCollection samples;
-	samples.add(wz1, 0);
-	samples.add(wz2, 0);
-	//samples.add(wz2, 1);
+	samples.add(wz1, mc_1);
+	samples.add(wz2, mc_2);
+	samples.add(wz_data, data);
 	std::cout << "DEBUG: adding filter" << std::endl;
-	//samples.filter("lep_n==0");
+	samples.filter("lep_n>0","N_{l}>0");
 	std::cout << "DEBUG: defining variables" << std::endl;
 	samples.define("wcand_mt",wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
 	samples.define("zcand_m",zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
@@ -169,12 +172,16 @@ int main() {
 	RegionCollection regions;
 	regions.add("nl3","lep_n==3","N_{l} = 3");
 	std::cout << "DEBUG: adding histograms" << std::endl;
-	HistogramCollection w_histogram = samples.book_histogram(regions,60,0,120000,"wcand_mt","mcWeight","W Candidate m_{T} (MeV)");
-	HistogramCollection z_histogram = samples.book_histogram(regions,60,0,120000,"zcand_m","mcWeight","Z Candidate m (MeV)");
-	w_histogram.set_luminosity(35.9);
-	z_histogram.set_luminosity(35.9);
+	HistogramCollection w_histogram = samples.book_1d_histogram(regions,60,0,120000,"wcand_mt","W Candidate m_{T} (MeV)","mcWeight");
+	HistogramCollection z_histogram = samples.book_1d_histogram(regions,60,0,120000,"zcand_m","Z Candidate m (MeV)","mcWeight");
+	w_histogram.set_luminosity(0.5);
+	z_histogram.set_luminosity(0.5);
 	std::cout << "DEBUG: overlaying histograms" << std::endl;
 	w_histogram.overlay_1d_histograms();
 	z_histogram.overlay_1d_histograms();
+	w_histogram.stack_1d_histograms();
+	z_histogram.stack_1d_histograms();
+	w_histogram.stack_ratio_1d_histograms();
+	z_histogram.stack_ratio_1d_histograms();
 	return 0;
 }

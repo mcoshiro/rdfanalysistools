@@ -6,10 +6,12 @@ LINKFLAGS := $(shell root-config --ld) $(shell root-config --ldflags) $(shell ro
 CORE_OBJECTS := $(addprefix bin/core/, $(addsuffix .o, $(notdir $(basename $(wildcard src/core/*.cpp)))))
 CORE_EXE_OBJECTS := $(addprefix bin/core/, $(addsuffix .o, $(notdir $(basename $(wildcard src/core/*.cxx)))))
 CORE_EXECUTABLES := $(addprefix bin/core/, $(addsuffix .exe, $(notdir $(basename $(wildcard src/core/*.cxx)))))
+TTZ_OBJECTS := $(addprefix bin/ttz/, $(addsuffix .o, $(notdir $(basename $(wildcard src/ttz/*.cpp)))))
+TTZ_EXE_OBJECTS := $(addprefix bin/ttz/, $(addsuffix .o, $(notdir $(basename $(wildcard src/ttz/*.cxx)))))
+TTZ_EXECUTABLES := $(addprefix bin/ttz/, $(addsuffix .exe, $(notdir $(basename $(wildcard src/ttz/*.cxx)))))
 
-all: $(CORE_OBJECTS) $(CORE_EXE_OBJECTS) $(CORE_EXECUTABLES)
+all: $(CORE_OBJECTS) $(CORE_EXE_OBJECTS) $(CORE_EXECUTABLES) $(TTZ_OBJECTS) $(TTZ_EXE_OBJECTS) $(TTZ_EXECUTABLES)
 
-#core objects
 bin/core/%.o: src/core/%.cpp
 	g++ $(COMPFLAGS) -o $@ -c $<
 
@@ -19,5 +21,17 @@ bin/core/%.o: src/core/%.cxx
 bin/core/%.exe: bin/core/%.o $(CORE_OBJECTS) 
 	$(LINKFLAGS) -o $@ $^
 
+bin/ttz/%.o: src/ttz/%.cpp
+	g++ $(COMPFLAGS) -o $@ -c $<
+
+bin/ttz/%.o: src/ttz/%.cxx
+	g++ $(COMPFLAGS) -o $@ -c $<
+
+bin/ttz/%.exe: bin/ttz/%.o $(CORE_OBJECTS) $(TTZ_OBJECTS)
+	$(LINKFLAGS) -o $@ $^
+
 clean:
-	-rm bin/core/*
+	-rm bin/core/*.o
+	-rm bin/core/*.exe
+	-rm bin/ttz/*.o
+	-rm bin/ttz/*.exe
