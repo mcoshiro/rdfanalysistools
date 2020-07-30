@@ -1,0 +1,216 @@
+#include <iostream>
+#include <vector>
+
+#include "TMath.h"
+#include "TLorentzVector.h"
+#include "ROOT/RDataFrame.hxx"
+#include "ROOT/RVec.hxx"
+#include "ROOT/RDF/RInterface.hxx"
+
+#include "../../inc/core/generic_utils.hxx"
+#include "../../inc/core/sample_wrapper.hxx"
+#include "../../inc/core/sample_collection.hxx"
+#include "../../inc/core/region_collection.hxx"
+#include "../../inc/core/histogram_collection.hxx"
+#include "../../inc/ttz/ttz_pico_utils.hxx"
+
+//helper functions
+bool idElectron_noIso(int bitmap, int level){
+  // decision for each cut represented by 3 bits (0:fail, 1:veto, 2:loose, 3:medium, 4:tight)
+  // Electron_vidNestedWPBitmap
+  //0 - MinPtCut
+  //1 - GsfEleSCEtaMultiRangeCut
+  //2 - GsfEleDEtaInSeedCut
+  //3 - GsfEleDPhiInCut
+  //4 - GsfEleFull5x5SigmaIEtaIEtaCut
+  //5 - GsfEleHadronicOverEMEnergyScaledCut
+  //6 - GsfEleEInverseMinusPInverseCut
+  //7 - GsfEleRelPFIsoScaledCut
+  //8 - GsfEleConversionVetoCut
+  //9 - GsfEleMissingHitsCut
+  bool pass = true;
+  // cout<<std::bitset<8*sizeof(bitmap)>(bitmap)<<endl;
+  for (int i(0); i<10; i++){
+    if (i==7) continue;
+    if ( ((bitmap >> i*3) & 0x7) < level) pass = false;
+  }
+  return pass;
+}
+
+bool pass_muon_jet(unsigned int const & nJet, ROOT::VecOps::RVec<float> const & Jet_eta, ROOT::VecOps::RVec<float> const & Jet_pt, ROOT::VecOps::RVec<float> const & Jet_muEF, ROOT::VecOps::RVec<float> const & Jet_phi, float const & MET_phi) {
+  //pass_muon_jet: reject events with muons mis-reconstructed as jets
+  //does not clean jets for lepton candidates => ONLY USE THIS FUNCTION WITH Nl=0 REQUIREMENT
+  for (unsigned int jet_idx = 0; jet_idx < nJet; jet_idx++) {
+    if (TMath::Abs(Jet_eta[jet_idx])>2.4) continue;
+    if (Jet_pt[jet_idx]<=200) continue;
+    if (Jet_muEF[jet_idx]<=0.5) continue;
+    if (delta_phi(Jet_phi[jet_idx],MET_phi)<(3.14159-0.4)) continue;
+    return false;
+  }
+  return true;
+}
+
+//function that returns true for events passing quality cuts
+bool pass_2016(bool const & pass_muon_jet, bool const & Flag_BadPFMuonFilter, float const & MET_pt, float const & CaloMET_pt, bool const & Flag_goodVertices, bool const & Flag_HBHENoiseFilter, bool const & Flag_HBHENoiseIsoFilter, bool const & Flag_EcalDeadCellTriggerPrimitiveFilter, unsigned int const & nJet, ROOT::VecOps::RVec<float> const & Jet_pt, ROOT::VecOps::RVec<int> const & Jet_jetId) {
+    //pass_muon_jet: reject events with muons mis-reconstructed as jets
+    if (!pass_muon_jet) return false;
+    //pass_badpfmu: reject events with bad muon PFCands
+    if (!Flag_BadPFMuonFilter) return false;
+    //reject events if met/met_calo is not less than 5
+    if (MET_pt/CaloMET_pt>5) return false;
+    //pass_goodv: reject events with bad primary vertices
+    if (!Flag_goodVertices) return false;
+    //pass_hbhe[iso]: 
+    if ((!Flag_HBHENoiseFilter)||(!Flag_HBHENoiseIsoFilter)) return false;
+    //pass_ecaldeadcell:
+    if (!Flag_EcalDeadCellTriggerPrimitiveFilter) return false;
+    //pass_badcalib:
+    //no ecalBadCalibFilter in 2016
+    //pass_jets: require all jets to pass loosest ID
+    //ONLY USE THIS FUNCTION WITH DATA OR FULLSIM (fastsim has different pass_jets)
+    for (unsigned int jet_idx = 0; jet_idx < nJet; jet_idx++) {
+      if (Jet_pt[jet_idx]>30 && Jet_jetId[jet_idx]<1) {
+        return false;
+      }
+    }
+    return true;
+}
+
+//function that returns true for events passing quality cuts
+bool pass_20172018(bool const & pass_muon_jet, bool const & Flag_BadPFMuonFilter, float const & MET_pt, float const & CaloMET_pt, bool const & Flag_goodVertices, bool const & Flag_HBHENoiseFilter, bool const & Flag_HBHENoiseIsoFilter, bool const & Flag_EcalDeadCellTriggerPrimitiveFilter, bool const & Flag_ecalBadCalibFilterV2, unsigned int const & nJet, ROOT::VecOps::RVec<float> const & Jet_pt, ROOT::VecOps::RVec<int> const & Jet_jetId) {
+    //pass_muon_jet: reject events with muons mis-reconstructed as jets
+    if (!pass_muon_jet) return false;
+    //pass_badpfmu: reject events with bad muon PFCands
+    if (!Flag_BadPFMuonFilter) return false;
+    //reject events if met/met_calo is not less than 5
+    if (MET_pt/CaloMET_pt>5) return false;
+    //pass_goodv: reject events with bad primary vertices
+    if (!Flag_goodVertices) return false;
+    //pass_hbhe[iso]: 
+    if ((!Flag_HBHENoiseFilter)||(!Flag_HBHENoiseIsoFilter)) return false;
+    //pass_ecaldeadcell:
+    if (!Flag_EcalDeadCellTriggerPrimitiveFilter) return false;
+    //pass_badcalib:
+    if (!Flag_ecalBadCalibFilterV2) return false;
+    //pass_jets: require all jets to pass loosest ID
+    //ONLY USE THIS FUNCTION WITH DATA OR FULLSIM (fastsim has different pass_jets)
+    for (unsigned int jet_idx = 0; jet_idx < nJet; jet_idx++) {
+      if (Jet_pt[jet_idx]>30 && Jet_jetId[jet_idx]<1) {
+        return false;
+      }
+    }
+    return true;
+}
+
+//function that returns true if there is a jet closely aligned with MET
+bool low_dphi_met(unsigned int const & nJet, ROOT::VecOps::RVec<float> const & Jet_pt, ROOT::VecOps::RVec<float> const & Jet_eta, ROOT::VecOps::RVec<float> const & Jet_phi, float const & MET_phi) {
+  int signal_jet_idx = 0;
+  //does not clean jets for lepton candidates => ONLY USE THIS FUNCTION WITH Nl=0 REQUIREMENT
+  for (unsigned int jet_idx = 0; jet_idx < nJet; jet_idx++) {
+    if (Jet_pt[jet_idx] <= 30) continue;
+    if (TMath::Abs(Jet_eta[jet_idx]) > 2.4) continue;
+    float dphi_cut = signal_jet_idx <= 1 ? 0.5 : 0.3;
+    if (delta_phi(Jet_phi[jet_idx],MET_phi)<dphi_cut) {
+      return true;
+    }
+    signal_jet_idx += 1;
+  }
+  return false;
+}
+
+//function that calculates HT for an event
+float ht(unsigned int const & nJet, ROOT::VecOps::RVec<float> const & Jet_pt, ROOT::VecOps::RVec<float> const & Jet_eta) {
+  //does not clean jets for lepton candidates => ONLY USE THIS FUNCTION WITH Nl=0 REQUIREMENT
+  float r_ht = 0;
+  for (unsigned int jet_idx = 0; jet_idx < nJet; jet_idx++) {
+    if (Jet_pt[jet_idx] <= 30) continue;
+    if (TMath::Abs(Jet_eta[jet_idx]) > 2.4) continue;
+    r_ht += Jet_pt[jet_idx];
+  }
+  return r_ht;
+}
+
+//function that returns number of electrons passing veto criteria
+unsigned int nvel(unsigned int const & nElectron, ROOT::VecOps::RVec<float> const & Electron_pt, ROOT::VecOps::RVec<float> const & Electron_eCorr, ROOT::VecOps::RVec<float> const & Electron_eta, ROOT::VecOps::RVec<int> const & Electron_vidNestedWPBitmap, ROOT::VecOps::RVec<float> const & Electron_dz, ROOT::VecOps::RVec<float> const & Electron_dxy, ROOT::VecOps::RVec<float> const & Electron_miniPFRelIso_all) {
+  unsigned int r_nvel;
+  for (unsigned int el_idx = 0; el_idx < nElectron; el_idx++) {
+    float el_pt = Electron_pt[el_idx]/Electron_eCorr[el_idx];
+    if (el_pt < 10) continue;
+    if (TMath::Abs(Electron_eta[el_idx]) > 2.5) continue;
+    if (!idElectron_noIso(Electron_vidNestedWPBitmap[el_idx], 1)) continue;
+    bool is_barrel = abs(Electron_eta[el_idx]) <= 1.479;
+    if ((is_barrel && abs(Electron_dz[el_idx])>0.1) || (!is_barrel && abs(Electron_dz[el_idx])>0.2)) continue;
+    if ((is_barrel && abs(Electron_dxy[el_idx])>0.05) || (!is_barrel && abs(Electron_dxy[el_idx])>0.1)) continue;
+    if (Electron_miniPFRelIso_all[el_idx] > 0.1) continue;
+    r_nvel += 1;
+  }
+  return r_nvel;
+}
+
+//function that returns number of muons passing veto criteria
+unsigned int nvmu(unsigned int const & nMuon, ROOT::VecOps::RVec<float> const & Muon_pt, ROOT::VecOps::RVec<float> const & Muon_eta, ROOT::VecOps::RVec<bool> const & Muon_mediumId, ROOT::VecOps::RVec<float> const & Muon_dz, ROOT::VecOps::RVec<float> const & Muon_dxy, ROOT::VecOps::RVec<float> const & Muon_miniPFRelIso_all) {
+  unsigned int r_nvmu;
+  for (unsigned int mu_idx = 0; mu_idx < nMuon; mu_idx++) {
+    if (Muon_pt[mu_idx] < 10) continue;
+    if (abs(Muon_eta[mu_idx]) > 2.4) continue;
+    if (!Muon_mediumId[mu_idx]) continue;
+    if (abs(Muon_dz[mu_idx])>0.5) continue;
+    if (abs(Muon_dxy[mu_idx])>0.2) continue;
+    if (Muon_miniPFRelIso_all[mu_idx] > 0.2) continue;
+    r_nvmu += 1;
+  }
+  return r_nvmu;
+}
+
+//function that returns true if one or more MET trigger fired (q: does this incorporate prescale?)
+bool met_trigger_2016(bool const & HLT_PFMET110_PFMHT110_IDTight, bool const & HLT_PFMETNoMu110_PFMHTNoMu110_IDTight, bool const & HLT_PFMET120_PFMHT120_IDTight, bool const & HLT_PFMETNoMu120_PFMHTNoMu120_IDTight) {
+  bool r_met_trigger = HLT_PFMET110_PFMHT110_IDTight || HLT_PFMETNoMu110_PFMHTNoMu110_IDTight || 
+                       HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight;
+  return r_met_trigger;
+}
+
+//function that returns true if one or more MET trigger fired (q: does this incorporate prescale?)
+bool met_trigger_20172018(bool const & HLT_PFMET110_PFMHT110_IDTight, bool const & HLT_PFMETNoMu110_PFMHTNoMu110_IDTight, bool const & HLT_PFMET120_PFMHT120_IDTight, bool const & HLT_PFMETNoMu120_PFMHTNoMu120_IDTight, bool const & HLT_PFMET120_PFMHT120_IDTight_PFHT60, bool const & HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60) {
+  bool r_met_trigger = HLT_PFMET110_PFMHT110_IDTight || HLT_PFMETNoMu110_PFMHTNoMu110_IDTight || 
+                       HLT_PFMET120_PFMHT120_IDTight || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight || 
+                       HLT_PFMET120_PFMHT120_IDTight_PFHT60 || HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60;
+  return r_met_trigger;
+}
+
+
+enum flags {
+	mc = 1,
+	data = 2
+};
+
+int main() {
+	ROOT::EnableImplicitMT();
+	std::cout << "Setting up and filtering." << std::endl;
+	SampleCollection samples;
+	samples.add(SampleWrapper("data","/net/cms29/cms29r0/pico/NanoAODv5/nano/2016/data/JetHT*",kBlack,"data",true,"Events"), data);
+
+	samples.filter("HLT_PFHT200||HLT_PFHT250||HLT_PFHT300||HLT_PFHT350||HLT_PFHT400||HLT_PFHT475||HLT_PFHT600||HLT_PFHT650||HLT_PFHT900", "Trig:HT");
+	samples.define("pass_muon_jet",pass_muon_jet,{"nJet", "Jet_eta", "Jet_pt", "Jet_muEF", "Jet_phi", "MET_phi"});
+	samples.define("pass",pass_2016,{"pass_muon_jet", "Flag_BadPFMuonFilter", "MET_pt", "CaloMET_pt", "Flag_goodVertices", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "nJet", "Jet_pt", "Jet_jetId"});
+	samples.define("low_dphi_met",low_dphi_met,{"nJet", "Jet_pt", "Jet_eta", "Jet_phi", "MET_phi"});
+	samples.define("nvel",nvel,{"nElectron", "Electron_pt", "Electron_eCorr", "Electron_eta", "Electron_vidNestedWPBitmap", "Electron_dz", "Electron_dxy", "Electron_miniPFRelIso_all"});
+	samples.define("nvmu",nvmu,{"nMuon", "Muon_pt", "Muon_eta", "Muon_mediumId", "Muon_dz", "Muon_dxy", "Muon_miniPFRelIso_all"});
+	samples.define("met_trigger",met_trigger_2016,{"HLT_PFMET110_PFMHT110_IDTight", "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight", "HLT_PFMET120_PFMHT120_IDTight", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"});
+	samples.define("weight","1");
+	samples.define("ht",ht,{"nJet", "Jet_pt", "Jet_eta"});
+	samples.filter("pass&&ht>140&&low_dphi_met&&nvel==0&&nvmu==0","Low #Delta#Phi, N_{ve}=N_{v#mu}=0");
+
+	RegionCollection regions;
+	regions.add("all","1","QCD Region");
+        std::vector<double> fake_met_bins{150,155,160,165,170,175,180,185,190,195,200,210,220,230,240,250,275,300,350,400,450,500,550};
+        std::vector<double> ht_bins{0,200,600,800,1000,1200};
+
+	std::cout << "Booking histograms." << std::endl;
+	HistogramCollection qcd_eff = samples.book_2d_efficiency_plot(regions,fake_met_bins.size()-1,&fake_met_bins[0],"MET_pt","p_{T}^{miss}",ht_bins.size()-1,&ht_bins[0],"ht","HT","weight","met_trigger","MET[NoMu][110|120|120_HT60]");
+
+	qcd_eff.set_save_root_file(true);
+	std::cout << "Drawing histograms." << std::endl;
+	qcd_eff.draweach_histograms();
+	std::cout << "Done" << std::endl;
+	return 0;
+}

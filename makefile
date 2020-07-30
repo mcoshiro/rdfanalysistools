@@ -9,8 +9,11 @@ CORE_EXECUTABLES := $(addprefix bin/core/, $(addsuffix .exe, $(notdir $(basename
 TTZ_OBJECTS := $(addprefix bin/ttz/, $(addsuffix .o, $(notdir $(basename $(wildcard src/ttz/*.cpp)))))
 TTZ_EXE_OBJECTS := $(addprefix bin/ttz/, $(addsuffix .o, $(notdir $(basename $(wildcard src/ttz/*.cxx)))))
 TTZ_EXECUTABLES := $(addprefix bin/ttz/, $(addsuffix .exe, $(notdir $(basename $(wildcard src/ttz/*.cxx)))))
+HHMET_OBJECTS := $(addprefix bin/higgsino/, $(addsuffix .o, $(notdir $(basename $(wildcard src/higgsino/*.cpp)))))
+HHMET_EXE_OBJECTS := $(addprefix bin/higgsino/, $(addsuffix .o, $(notdir $(basename $(wildcard src/higgsino/*.cxx)))))
+HHMET_EXECUTABLES := $(addprefix bin/higgsino/, $(addsuffix .exe, $(notdir $(basename $(wildcard src/higgsino/*.cxx)))))
 
-all: $(CORE_OBJECTS) $(CORE_EXE_OBJECTS) $(CORE_EXECUTABLES) $(TTZ_OBJECTS) $(TTZ_EXE_OBJECTS) $(TTZ_EXECUTABLES)
+all: $(CORE_OBJECTS) $(CORE_EXE_OBJECTS) $(CORE_EXECUTABLES) $(TTZ_OBJECTS) $(TTZ_EXE_OBJECTS) $(TTZ_EXECUTABLES) $(HHMET_OBJETS) $(HHMET_EXE_OBJECTS) $(HHMET_EXECUTABLES)
 
 bin/core/%.o: src/core/%.cpp
 	g++ $(COMPFLAGS) -o $@ -c $<
@@ -30,8 +33,19 @@ bin/ttz/%.o: src/ttz/%.cxx
 bin/ttz/%.exe: bin/ttz/%.o $(CORE_OBJECTS) $(TTZ_OBJECTS)
 	$(LINKFLAGS) -o $@ $^
 
+bin/higgsino/%.o: src/higgsino/%.cpp
+	g++ $(COMPFLAGS) -o $@ -c $<
+
+bin/higgsino/%.o: src/higgsino/%.cxx
+	g++ $(COMPFLAGS) -o $@ -c $<
+
+bin/higgsino/%.exe: bin/higgsino/%.o $(CORE_OBJECTS) $(HHMET_OBJECTS)
+	$(LINKFLAGS) -o $@ $^
+
 clean:
 	-rm bin/core/*.o
 	-rm bin/core/*.exe
 	-rm bin/ttz/*.o
 	-rm bin/ttz/*.exe
+	-rm bin/higgsino/*.o
+	-rm bin/higgsino/*.exe

@@ -36,7 +36,7 @@ class SampleCollection {
 		 * method to define data frame columns, see RInterface::Define
 		 * flags argument can be used to only define colums for certain samples
 		 */
-		//void define(const char* name, const char* expression, std::set<int> flags={});
+		void define(const char* name, const char* expression, std::set<int> flags={});
 
 		/**
 		 * method to define data frame columns, see RInterface::Define
@@ -70,6 +70,11 @@ class SampleCollection {
 		 * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
 		 */
 		HistogramCollection book_2d_efficiency_plot(RegionCollection regions, int xnbins, double xlow, double xhigh, std::string xvariable, std::string xdescription, int ynbins, double ylow, double yhigh, std::string yvariable, std::string ydescription, std::string_view weight, std::string numerator_cut, std::string numerator_description);
+
+		/**
+		 * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
+		 */
+		HistogramCollection book_2d_efficiency_plot(RegionCollection regions, int xnbins, double* xbins, std::string xvariable, std::string xdescription, int ynbins, double* ybins, std::string yvariable, std::string ydescription, std::string_view weight, std::string numerator_cut, std::string numerator_description);
 };
 
 #include "../../src/core/sample_collection.tpp"

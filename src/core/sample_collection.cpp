@@ -34,13 +34,13 @@ void SampleCollection::add(SampleWrapper sample, int flag) {
  * method to define data frame columns, see RInterface::Define
  * flags argument can be used to only define colums for certain samples
  */
-//void SampleCollection::define(const char* name, const char* expression, std::set<int> flags) {
-//	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
-//		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
-//			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression);
-//		}
-//	}
-//}
+void SampleCollection::define(const char* name, const char* expression, std::set<int> flags) {
+	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
+			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression);
+		}
+	}
+}
 
 /**
  * method to filter data frames, see RInterface::Filter
@@ -175,11 +175,45 @@ HistogramCollection SampleCollection::book_2d_efficiency_plot(RegionCollection r
 				("hist_"+xvariable+"_"+yvariable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)).c_str(),
 				(y_internal_description+" vs. "+x_internal_description+" "+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+x_internal_description+"; "+y_internal_description).c_str(),
 				xnbins,xlow,xhigh,ynbins,ylow,yhigh},xvariable,yvariable,weight));
-			region_data_frame.Filter(numerator_cut);
+			region_data_frame = region_data_frame.Filter(numerator_cut);
 			histograms[sample_idx].push_back(region_data_frame.Histo2D({
 				("hist_"+xvariable+"_"+yvariable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)).c_str(),
 				("Efficiency "+numerator_description+" "+y_internal_description+" vs. "+x_internal_description+" "+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+x_internal_description+"; "+y_internal_description).c_str(),
 				xnbins,xlow,xhigh,ynbins,ylow,yhigh},xvariable,yvariable,weight));
+		}
+	}
+	return HistogramCollection(xvariable, x_internal_description, yvariable, y_internal_description, histograms, denominator_histograms, sample_pointers, regions);
+}
+
+/**
+ * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
+ */
+HistogramCollection SampleCollection::book_2d_efficiency_plot(RegionCollection regions, int xnbins, double* xbins, std::string xvariable, std::string xdescription, int ynbins, double* ybins, std::string yvariable, std::string ydescription, std::string_view weight, std::string numerator_cut, std::string numerator_description) {
+	std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> histograms;
+	std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> denominator_histograms;
+	std::vector<SampleWrapper*> sample_pointers;
+	std::string x_internal_description = xdescription;
+	std::string y_internal_description = ydescription;
+	if (xdescription=="") x_internal_description = xvariable;
+	if (ydescription=="") y_internal_description = yvariable;
+	//loop over samples
+	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+		histograms.push_back(std::vector<ROOT::RDF::RResultPtr<TH2D>>());
+		denominator_histograms.push_back(std::vector<ROOT::RDF::RResultPtr<TH2D>>());
+		sample_pointers.push_back(&samples[sample_idx]);
+		//loop over regions
+		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+			//filter sample to region
+			ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void> region_data_frame = samples[sample_idx].data_frame().Filter(regions.get_cuts(region_idx, sample_flags[sample_idx]));
+			denominator_histograms[sample_idx].push_back(region_data_frame.Histo2D({
+				("hist_"+xvariable+"_"+yvariable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)).c_str(),
+				(y_internal_description+" vs. "+x_internal_description+" "+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+x_internal_description+"; "+y_internal_description).c_str(),
+				xnbins,xbins,ynbins,ybins},xvariable,yvariable,weight));
+			region_data_frame = region_data_frame.Filter(numerator_cut);
+			histograms[sample_idx].push_back(region_data_frame.Histo2D({
+				("hist_"+xvariable+"_"+yvariable+"_"+samples[sample_idx].sample_name+"_"+regions.get_name(region_idx)).c_str(),
+				("Efficiency "+numerator_description+" "+y_internal_description+" vs. "+x_internal_description+" "+baseline_selection_descriptions[sample_idx]+", "+regions.get_description(region_idx)+"; "+x_internal_description+"; "+y_internal_description).c_str(),
+				xnbins,xbins,ynbins,ybins},xvariable,yvariable,weight));
 		}
 	}
 	return HistogramCollection(xvariable, x_internal_description, yvariable, y_internal_description, histograms, denominator_histograms, sample_pointers, regions);

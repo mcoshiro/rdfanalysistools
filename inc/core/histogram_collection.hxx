@@ -39,6 +39,7 @@ bool sort_by_maximum(HistogramAndStyle hist_a, HistogramAndStyle hist_b);
  */
 class HistogramCollection {
 	private:
+		//internal variables
 		std::string name;
 		std::string yname;
 		std::string description;
@@ -53,6 +54,17 @@ class HistogramCollection {
 		bool draw_log;
 		bool is_2d;
 		bool is_efficiency;
+		bool save_as_root;
+
+		/**
+		 * function to draw several TH1's separately
+		 */
+		void draweach_1d_histograms();
+
+		/**
+		 * function to draw several TH2's separately
+		 */
+		void draweach_2d_histograms();
 
 	public:
 		/**
@@ -74,6 +86,11 @@ class HistogramCollection {
 		 * constructor to generate collection from a vector of vectors for 2d efficiencies
 		 */
 		HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+
+		/**
+		 * function to save root file
+		 */
+		void set_save_root_file(bool i_set_save_root_file);
 
 		/**
 		 * function to set luminosity
@@ -102,9 +119,10 @@ class HistogramCollection {
 		void stack_ratio_1d_histograms(bool sort_histograms=true);
 
 		/**
-		 * function to draw several TH2's separately
+		 * function to draw several histograms separately
 		 */
-		void draweach_2d_histograms();
+		void draweach_histograms();
+
 };
 
 #endif

@@ -13,7 +13,8 @@
 #include "../../inc/core/histogram_collection.hxx"
 
 //helper functions
-int el_n(unsigned int lep_n, ROOT::VecOps::RVec<int> lep_type) {
+//function that returns the number of electrons
+int el_n(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type) {
 	int r_el_n = 0;
 	for (unsigned int lep_idx = 0; lep_idx < lep_n; lep_idx++) {
 		if (lep_type[lep_idx]==11) {
@@ -23,7 +24,8 @@ int el_n(unsigned int lep_n, ROOT::VecOps::RVec<int> lep_type) {
 	return r_el_n;
 }
 
-float wcand_mt(unsigned int lep_n, ROOT::VecOps::RVec<unsigned int> lep_type, ROOT::VecOps::RVec<float> lep_pt, ROOT::VecOps::RVec<float> lep_eta, ROOT::VecOps::RVec<float> lep_phi, float met_et, float met_phi) {
+//function to get W boson mt in WZ->llln events
+float wcand_mt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi, float const &met_et, float const &met_phi) {
 	float r_wcand_mt = -999;
 	if (lep_n != 3) return r_wcand_mt;
 	//find odd lepton out
@@ -82,7 +84,8 @@ float wcand_mt(unsigned int lep_n, ROOT::VecOps::RVec<unsigned int> lep_type, RO
 	return r_wcand_mt;
 }
 
-float zcand_m(unsigned int lep_n, ROOT::VecOps::RVec<unsigned int> lep_type, ROOT::VecOps::RVec<float> lep_pt, ROOT::VecOps::RVec<float> lep_eta, ROOT::VecOps::RVec<float> lep_phi) {
+//function to get Z boson mass in WZ->llln events
+float zcand_m(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi) {
 	float r_zcand_m = -999;
 	if (lep_n != 3) return r_zcand_m;
 	//find odd lepton out
@@ -145,6 +148,30 @@ float zcand_m(unsigned int lep_n, ROOT::VecOps::RVec<unsigned int> lep_type, ROO
 	return r_zcand_m;
 }
 
+//return pt of highest pt electron
+float max_el_pt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt) {
+	float r_max_el_pt = -999;
+	for (unsigned int lep_idx = 0; lep_idx < lep_n; lep_idx++) {
+		if (lep_type[lep_idx] == 11) {
+			r_max_el_pt = lep_pt[lep_idx] > r_max_el_pt ? lep_pt[lep_idx] : r_max_el_pt;
+		}
+	}
+	return r_max_el_pt;
+}
+
+//return |eta| of highest pt electron
+float max_el_abs_eta(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta) {
+	float max_el_pt = -999;
+	float r_max_el_eta = -999;
+	for (unsigned int lep_idx = 0; lep_idx < lep_n; lep_idx++) {
+		if (lep_type[lep_idx] == 11) {
+			r_max_el_eta = lep_pt[lep_idx] > max_el_pt ? lep_eta[lep_idx] : r_max_el_eta;
+			max_el_pt = lep_pt[lep_idx] > max_el_pt ? lep_pt[lep_idx] : max_el_pt;
+		}
+	}
+	return TMath::Abs(r_max_el_eta);
+}
+
 //flag enum
 enum Flag {
 	mc_1 = 1,
@@ -153,35 +180,56 @@ enum Flag {
 };
 
 int main() {
+	//enable multi-threading
 	//ROOT::EnableImplicitMT();
-	std::cout << "DEBUG: starting" << std::endl;
+	//defined samples and add to a sample collection
 	SampleWrapper wz1("wz1","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz1",false,"mini");
 	SampleWrapper wz2("wz2","/homes/oshiro/trees/mc_105987.WZ.root",kBlue,"wz2",false,"mini");
 	SampleWrapper wz_data("wz_data","/homes/oshiro/trees/mc_105987.WZ.root",kBlack,"wz_data",true,"mini");
-	std::cout << "DEBUG: making SampleCollection" << std::endl;
 	SampleCollection samples;
 	samples.add(wz1, mc_1);
 	samples.add(wz2, mc_2);
 	samples.add(wz_data, data);
-	std::cout << "DEBUG: adding filter" << std::endl;
+	//add a filter and define new columns
 	samples.filter("lep_n>0","N_{l}>0");
-	std::cout << "DEBUG: defining variables" << std::endl;
 	samples.define("wcand_mt",wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
 	samples.define("zcand_m",zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
-	std::cout << "DEBUG: making RegionCollection" << std::endl;
+	//define a region collection in which to make plots
 	RegionCollection regions;
 	regions.add("nl3","lep_n==3","N_{l} = 3");
-	std::cout << "DEBUG: adding histograms" << std::endl;
+	//book histograms and set luminosity to scale MC
 	HistogramCollection w_histogram = samples.book_1d_histogram(regions,60,0,120000,"wcand_mt","W Candidate m_{T} (MeV)","mcWeight");
 	HistogramCollection z_histogram = samples.book_1d_histogram(regions,60,0,120000,"zcand_m","Z Candidate m (MeV)","mcWeight");
+	//generate several different types of plots
+	//booked histograms are generated upon calling any of the following methods, so it is good to book everything first
 	w_histogram.set_luminosity(0.5);
 	z_histogram.set_luminosity(0.5);
-	std::cout << "DEBUG: overlaying histograms" << std::endl;
 	w_histogram.overlay_1d_histograms();
 	z_histogram.overlay_1d_histograms();
 	w_histogram.stack_1d_histograms();
 	z_histogram.stack_1d_histograms();
 	w_histogram.stack_ratio_1d_histograms();
 	z_histogram.stack_ratio_1d_histograms();
+
+	//make a new SampleCollection for efficiency plots
+	std::cout << "Running efficiency plot code." << std::endl;
+	SampleWrapper wz3("wz3","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz3",false,"mini");
+	SampleCollection eff_samples;
+	eff_samples.add(wz3, mc_1);
+	//define columns and filters
+	eff_samples.define("el_n",el_n,{"lep_n","lep_type"});
+	eff_samples.define("max_el_pt",max_el_pt,{"lep_n","lep_type","lep_pt"});
+	eff_samples.define("max_el_abs_eta",max_el_abs_eta,{"lep_n","lep_type","lep_pt","lep_eta"});
+	eff_samples.filter("el_n>1");
+	//define inclusive region and book efficiency plot
+	RegionCollection region_full;
+	region_full.add("full","1","full");
+	std::cout << "Booking efficiency plot" << std::endl;
+	HistogramCollection hist_el_pt_eff = eff_samples.book_1d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}","mcWeight","trigE","El Trigger");
+	HistogramCollection hist_el_pt_eta_eff = eff_samples.book_2d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}",3,0,2.5,"max_el_abs_eta","Leading e |#eta|","mcWeight","trigE","El Trigger");
+	//draw output
+	std::cout << "Drawing" << std::endl;
+	hist_el_pt_eff.draweach_histograms();
+	hist_el_pt_eta_eff.draweach_histograms();
 	return 0;
 }
