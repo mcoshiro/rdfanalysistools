@@ -7,10 +7,12 @@
 #include "ROOT/RVec.hxx"
 #include "ROOT/RDF/RInterface.hxx"
 
+//#include "../../inc/core/column_definition.hxx"
+#include "../../inc/core/variable_axis.hxx"
 #include "../../inc/core/sample_wrapper.hxx"
 #include "../../inc/core/sample_collection.hxx"
 #include "../../inc/core/region_collection.hxx"
-#include "../../inc/core/histogram_collection.hxx"
+#include "../../inc/core/plot_collection.hxx"
 
 //helper functions
 //function that returns the number of electrons
@@ -23,6 +25,8 @@ int el_n(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_
 	}
 	return r_el_n;
 }
+//ColumnDefinition<int*(unsigned int const&, ROOT::VecOps::RVec<unsigned int>const &)> el_n("el_n",&fn_el_n,{"lep_n","lep_type"});
+std::vector<std::string> el_n_args = {"lep_n","lep_type"};
 
 //function to get W boson mt in WZ->llln events
 float wcand_mt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi, float const &met_et, float const &met_phi) {
@@ -83,6 +87,8 @@ float wcand_mt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const
 	}
 	return r_wcand_mt;
 }
+//ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, float const &, float const &) wcand_mt("wcand_mt",&fn_wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
+std::vector<std::string> wcand_mt_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"};
 
 //function to get Z boson mass in WZ->llln events
 float zcand_m(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi) {
@@ -147,6 +153,9 @@ float zcand_m(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const 
 	}
 	return r_zcand_m;
 }
+//ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &) zcand_m("zcand_m",&fn_zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
+std::vector<std::string> zcand_m_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi"};
+
 
 //return pt of highest pt electron
 float max_el_pt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt) {
@@ -158,6 +167,9 @@ float max_el_pt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> cons
 	}
 	return r_max_el_pt;
 }
+//ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &)> max_el_pt("max_el_pt",&fn_max_el_pt,{"lep_n","lep_type","lep_pt"});
+std::vector<std::string> max_el_pt_args = {"lep_n","lep_type","lep_pt"};
+
 
 //return |eta| of highest pt electron
 float max_el_abs_eta(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta) {
@@ -171,35 +183,32 @@ float max_el_abs_eta(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int>
 	}
 	return TMath::Abs(r_max_el_eta);
 }
-
-//flag enum
-enum Flag {
-	mc_1 = 1,
-	mc_2 = 2,
-	data = 3
-};
+//ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &)> max_el_abs_eta("max_el_abs_eta",&fn_max_el_abs_eta,{"lep_n","lep_type","lep_pt","lep_eta"});
+std::vector<std::string> max_el_abs_eta_args = {"lep_n","lep_type","lep_pt","lep_eta"};
 
 int main() {
 	//enable multi-threading
 	//ROOT::EnableImplicitMT();
 	//defined samples and add to a sample collection
-	SampleWrapper wz1("wz1","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz1",false,"mini");
-	SampleWrapper wz2("wz2","/homes/oshiro/trees/mc_105987.WZ.root",kBlue,"wz2",false,"mini");
-	SampleWrapper wz_data("wz_data","/homes/oshiro/trees/mc_105987.WZ.root",kBlack,"wz_data",true,"mini");
-	SampleCollection samples;
-	samples.add(wz1, mc_1);
-	samples.add(wz2, mc_2);
-	samples.add(wz_data, data);
+	SampleWrapper *wz1 = new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",1,false,"mini");
+	SampleWrapper *wz2 = new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",1,false,"mini");
+	SampleWrapper *wz_data = new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",1,true,"mini");
+	SampleCollection *samples = new SampleCollection();
+	samples->add(wz1);
+	samples->add(wz2);
+	samples->add(wz_data);
 	//add a filter and define new columns
-	samples.filter("lep_n>0","N_{l}>0");
-	samples.define("wcand_mt",wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
-	samples.define("zcand_m",zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
+	samples->filter("lep_n>0","N_{l}>0");
+	//samples.define("wcand_mt",wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
+	samples->define("wcand_mt",wcand_mt,wcand_mt_args);
+	//samples.define("zcand_m",zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
+	samples->define("zcand_m",zcand_m,zcand_m_args);
 	//define a region collection in which to make plots
-	RegionCollection regions;
-	regions.add("nl3","lep_n==3","N_{l} = 3");
+	RegionCollection * regions = new RegionCollection();
+	regions->add("nl3","lep_n==3","N_{l} = 3");
 	//book histograms and set luminosity to scale MC
-	HistogramCollection w_histogram = samples.book_1d_histogram(regions,60,0,120000,"wcand_mt","W Candidate m_{T} (MeV)","mcWeight");
-	HistogramCollection z_histogram = samples.book_1d_histogram(regions,60,0,120000,"zcand_m","Z Candidate m (MeV)","mcWeight");
+	PlotCollection w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),"mcWeight",regions);
+	PlotCollection z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),"mcWeight",regions);
 	//generate several different types of plots
 	//booked histograms are generated upon calling any of the following methods, so it is good to book everything first
 	w_histogram.set_luminosity(0.5);
@@ -210,26 +219,31 @@ int main() {
 	z_histogram.stack_1d_histograms();
 	w_histogram.stack_ratio_1d_histograms();
 	z_histogram.stack_ratio_1d_histograms();
+	delete wz1;
+        delete wz2;
+	delete wz_data;
+	delete regions;
+	delete samples;
 
-	//make a new SampleCollection for efficiency plots
-	std::cout << "Running efficiency plot code." << std::endl;
-	SampleWrapper wz3("wz3","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz3",false,"mini");
-	SampleCollection eff_samples;
-	eff_samples.add(wz3, mc_1);
-	//define columns and filters
-	eff_samples.define("el_n",el_n,{"lep_n","lep_type"});
-	eff_samples.define("max_el_pt",max_el_pt,{"lep_n","lep_type","lep_pt"});
-	eff_samples.define("max_el_abs_eta",max_el_abs_eta,{"lep_n","lep_type","lep_pt","lep_eta"});
-	eff_samples.filter("el_n>1");
-	//define inclusive region and book efficiency plot
-	RegionCollection region_full;
-	region_full.add("full","1","full");
-	std::cout << "Booking efficiency plot" << std::endl;
-	HistogramCollection hist_el_pt_eff = eff_samples.book_1d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}","mcWeight","trigE","El Trigger");
-	HistogramCollection hist_el_pt_eta_eff = eff_samples.book_2d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}",3,0,2.5,"max_el_abs_eta","Leading e |#eta|","mcWeight","trigE","El Trigger");
-	//draw output
-	std::cout << "Drawing" << std::endl;
-	hist_el_pt_eff.draweach_histograms();
-	hist_el_pt_eta_eff.draweach_histograms();
+	////make a new SampleCollection for efficiency plots
+	//std::cout << "Running efficiency plot code." << std::endl;
+	//SampleWrapper wz3("wz3","/homes/oshiro/trees/mc_105987.WZ.root",kRed,"wz3",false,"mini");
+	//SampleCollection eff_samples;
+	//eff_samples.add(wz3, mc_1);
+	////define columns and filters
+	//eff_samples.define("el_n",el_n,{"lep_n","lep_type"});
+	//eff_samples.define("max_el_pt",max_el_pt,{"lep_n","lep_type","lep_pt"});
+	//eff_samples.define("max_el_abs_eta",max_el_abs_eta,{"lep_n","lep_type","lep_pt","lep_eta"});
+	//eff_samples.filter("el_n>1");
+	////define inclusive region and book efficiency plot
+	//RegionCollection region_full;
+	//region_full.add("full","1","full");
+	//std::cout << "Booking efficiency plot" << std::endl;
+	//HistogramCollection hist_el_pt_eff = eff_samples.book_1d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}","mcWeight","trigE","El Trigger");
+	//HistogramCollection hist_el_pt_eta_eff = eff_samples.book_2d_efficiency_plot(region_full,10,10000.,110000.,"max_el_pt","Leading e p_{T}",3,0,2.5,"max_el_abs_eta","Leading e |#eta|","mcWeight","trigE","El Trigger");
+	////draw output
+	//std::cout << "Drawing" << std::endl;
+	//hist_el_pt_eff.draweach_histograms();
+	//hist_el_pt_eta_eff.draweach_histograms();
 	return 0;
 }

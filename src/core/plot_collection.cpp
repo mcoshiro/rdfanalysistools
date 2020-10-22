@@ -14,7 +14,7 @@
 
 #include "../../inc/core/sample_wrapper.hxx"
 #include "../../inc/core/region_collection.hxx"
-#include "../../inc/core/histogram_collection.hxx"
+#include "../../inc/core/plot_collection.hxx"
 
 /**
  * sorting function to sort histograms by integrated area
@@ -37,29 +37,31 @@ bool sort_by_maximum(HistogramAndStyle hist_a, HistogramAndStyle hist_b) {
 /**
  * constructor to generate collection from a vector of vectors for 1d histograms
  */
-HistogramCollection::HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions)
+PlotCollection::PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions)
 	: samples(i_samples)
-	, regions(i_regions)
 {
-	name = i_name;
-	description = i_description;
+	regions = i_regions;
+	name = axis.variable_name;
+	description = axis.variable_description;
 	histograms = i_histograms;
 	luminosity = 1.0;
 	draw_log = false;
 	is_efficiency = false;
 	is_2d = false;
 	save_as_root = false;
+	file_extension = "png";
 }
 
 /**
  * constructor to generate collection from a vector of vectors for 1d efficiencies
  */
-HistogramCollection::HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions)
+PlotCollection::PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions)
 	: samples(i_samples)
-	, regions(i_regions)
 {
-	name = i_name;
-	description = i_description;
+	std::string temp = numerator_description; //temp to avoid unused variable
+	regions = i_regions;
+	name = axis.variable_name;
+	description = axis.variable_description;
 	histograms = i_histograms;
 	denominator_histograms = i_denominator_histograms;
 	luminosity = 1.0;
@@ -67,38 +69,41 @@ HistogramCollection::HistogramCollection(std::string i_name, std::string i_descr
 	is_efficiency = true;
 	is_2d = false;
 	save_as_root = false;
+	file_extension = "png";
 }
 
 /**
  * constructor to generate collection from a vector of vectors for 2d histograms
  */
-HistogramCollection::HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions)
+PlotCollection::PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions)
 	: samples(i_samples)
-	, regions(i_regions)
 {
-	name = i_name;
-	description = i_description;
-	yname = i_yname;
-	ydescription = i_ydescription;
+	regions = i_regions;
+	name = x_axis.variable_name;
+	description = x_axis.variable_description;
+	yname = y_axis.variable_name;
+	ydescription = y_axis.variable_description;
 	twodim_histograms = i_twodim_histograms;
 	luminosity = 1.0;
 	draw_log = false;
 	is_efficiency = false;
 	is_2d = true;
 	save_as_root = false;
+	file_extension = "png";
 }
 
 /**
- * constructor to generate collection from a vector of vectors for 2d efficiencies
+ * constructor to generate collection from a vector of vectors, for 2d efficiencies
  */
-HistogramCollection::HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions)
+PlotCollection::PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions)
 	: samples(i_samples)
-	, regions(i_regions)
 {
-	name = i_name;
-	description = i_description;
-	yname = i_yname;
-	ydescription = i_ydescription;
+	std::string temp = numerator_description; //temp to avoid unused variable
+	regions = i_regions;
+	name = x_axis.variable_name;
+	description = x_axis.variable_description;
+	yname = y_axis.variable_name;
+	ydescription = y_axis.variable_description;
 	twodim_histograms = i_twodim_histograms;
 	twodim_denominator_histograms = i_twodim_denominator_histograms;
 	luminosity = 1.0;
@@ -106,19 +111,20 @@ HistogramCollection::HistogramCollection(std::string i_name, std::string i_descr
 	is_efficiency = true;
 	is_2d = true;
 	save_as_root = false;
+	file_extension = "png";
 }
 
 /**
  * function to save root file
  */
-void HistogramCollection::set_save_root_file(bool i_set_save_root_file) {
+void PlotCollection::set_save_root_file(bool i_set_save_root_file) {
 	save_as_root = i_set_save_root_file;
 }
 
 /**
  * function to set luminosity
  */
-void HistogramCollection::set_luminosity(float i_luminosity) {
+void PlotCollection::set_luminosity(float i_luminosity) {
 	luminosity = i_luminosity;
 	if (histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
@@ -126,7 +132,7 @@ void HistogramCollection::set_luminosity(float i_luminosity) {
 	}
 	//scaling will cancel off in ratios, so don't scale efficiencies
 	if (!is_2d && !is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
 				if (!samples[sample_idx]->is_data) {
 					histograms[sample_idx][region_idx]->Scale(luminosity);
@@ -135,7 +141,7 @@ void HistogramCollection::set_luminosity(float i_luminosity) {
 		}
 	}
 	if (is_2d && !is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
 				if (!samples[sample_idx]->is_data) {
 					twodim_histograms[sample_idx][region_idx]->Scale(luminosity);
@@ -148,14 +154,22 @@ void HistogramCollection::set_luminosity(float i_luminosity) {
 /**
  * function to set log y
  */
-void HistogramCollection::set_draw_log() {
-	draw_log = true;
+void PlotCollection::set_draw_log(bool i_draw_log) {
+	draw_log = i_draw_log;
 }
+
+/**
+ * function to set file extension
+ */
+void PlotCollection::set_file_extension(std::string i_file_extension) {
+	file_extension = i_file_extension;
+}
+
 
 /**
  * function to draw several TH1's overlayed on each other
  */
-void HistogramCollection::overlay_1d_histograms() {
+void PlotCollection::overlay_1d_histograms() {
 	//TODO: allow overlaying 1d efficiencies
 	if (histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
@@ -167,8 +181,8 @@ void HistogramCollection::overlay_1d_histograms() {
 	}
 	gStyle->SetOptStat(0);
 	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
-		TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_canvas").c_str());
+	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
+		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
 		if (draw_log) {
 			c->SetLogy(true);
 		}
@@ -195,7 +209,7 @@ void HistogramCollection::overlay_1d_histograms() {
 			legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
 		}
 		legend->Draw();
-		c->SaveAs(("plots/"+name+"_overlay_"+regions.get_name(region_idx)+".png").c_str());
+		c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 	}
 }
 
@@ -203,7 +217,7 @@ void HistogramCollection::overlay_1d_histograms() {
 /**
  * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
  */
-void HistogramCollection::stack_1d_histograms(bool sort_histograms) {
+void PlotCollection::stack_1d_histograms(bool sort_histograms) {
 	if (histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
 		return;
@@ -218,13 +232,13 @@ void HistogramCollection::stack_1d_histograms(bool sort_histograms) {
 	}
 	gStyle->SetOptStat(0);
 	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
-		TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_canvas").c_str());
+	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
+		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
 		if (draw_log) {
 			c->SetLogy(true);
 		}
 		c->cd();
-		THStack* hist_stack = new THStack((regions.get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
+		THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
 		TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
 		std::vector<HistogramAndStyle> ordered_histograms;
 		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
@@ -276,7 +290,7 @@ void HistogramCollection::stack_1d_histograms(bool sort_histograms) {
 		data_hist->Draw("e0 same");
 		legend->Draw();
 		//draw any data
-		c->SaveAs(("plots/"+name+"_stack_"+regions.get_name(region_idx)+".png").c_str());
+		c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 	}
 }
 
@@ -284,7 +298,7 @@ void HistogramCollection::stack_1d_histograms(bool sort_histograms) {
  * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
  * additionally, draw a data/MC ratio plot
  */
-void HistogramCollection::stack_ratio_1d_histograms(bool sort_histograms) {
+void PlotCollection::stack_ratio_1d_histograms(bool sort_histograms) {
 	if (histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
 		return;
@@ -299,9 +313,9 @@ void HistogramCollection::stack_ratio_1d_histograms(bool sort_histograms) {
 	}
 	gStyle->SetOptStat(0);
 	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 		//split canvas into two pads; upper pad draws histograms lower pad draws ratio
-		TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_canvas").c_str());
+		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
 		TPad* stack_pad = new TPad("stack_pad","",0.0,0.2,1.0,1.0);
 		TPad* ratio_pad = new TPad("ratio_pad","",0.0,0.0,1.0,0.2);
 		stack_pad->Draw();
@@ -309,7 +323,7 @@ void HistogramCollection::stack_ratio_1d_histograms(bool sort_histograms) {
 		stack_pad->cd();
 		gPad->SetBottomMargin(0);
 		//draw THStack
-		THStack* hist_stack = new THStack((regions.get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
+		THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
 		TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
 		std::vector<HistogramAndStyle> ordered_histograms;
 		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
@@ -383,14 +397,14 @@ void HistogramCollection::stack_ratio_1d_histograms(bool sort_histograms) {
 		hist_ratio->Draw("e0");
 		ratio_pad->Modified();
 		c->Update();
-		c->SaveAs(("plots/"+name+"_stack_ratio_"+regions.get_name(region_idx)+".png").c_str());
+		c->SaveAs(("plots/"+name+"_stack_ratio_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 	}
 }
 
 /**
  * function to draw several histograms separately
  */
-void HistogramCollection::draweach_histograms() {
+void PlotCollection::draweach_histograms() {
 	if (!is_2d) {
 		draweach_1d_histograms();
 	}
@@ -402,7 +416,7 @@ void HistogramCollection::draweach_histograms() {
 /**
  * function to draw several TH1's separately
  */
-void HistogramCollection::draweach_1d_histograms() {
+void PlotCollection::draweach_1d_histograms() {
 	//TODO: allow draweach'ing 1d histograms
 	if (histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
@@ -415,9 +429,9 @@ void HistogramCollection::draweach_1d_histograms() {
 	gStyle->SetOptStat(0);
 	//loop over regions
 	if (!is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
+				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
 				if (draw_log) {
 					c->SetLogz(true);
 				}
@@ -425,7 +439,7 @@ void HistogramCollection::draweach_1d_histograms() {
 				TH1D* cloned_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
 				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
 				cloned_hist->Draw("e0");
-				c->SaveAs(("plots/"+name+"_"+samples[sample_idx]->sample_name+"_"+regions.get_name(region_idx)+".png").c_str());
+				c->SaveAs(("plots/"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 				if (save_as_root) {
 					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
 					cloned_hist->Write();
@@ -435,9 +449,9 @@ void HistogramCollection::draweach_1d_histograms() {
 		}
 	}
 	else {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
+				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
 				if (draw_log) {
 					c->SetLogz(true);
 				}
@@ -449,7 +463,7 @@ void HistogramCollection::draweach_1d_histograms() {
 				hist_ratio->GetXaxis()->SetTitle(cloned_numerator->GetXaxis()->GetTitle());
 				hist_ratio->GetYaxis()->SetTitle(cloned_numerator->GetYaxis()->GetTitle());
 				hist_ratio->Draw("AP");
-				c->SaveAs(("plots/eff_"+name+"_"+samples[sample_idx]->sample_name+"_"+regions.get_name(region_idx)+".png").c_str());
+				c->SaveAs(("plots/eff_"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 				if (save_as_root) {
 					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
 					cloned_numerator->Write();
@@ -465,7 +479,7 @@ void HistogramCollection::draweach_1d_histograms() {
 /**
  * function to draw several TH2's separately
  */
-void HistogramCollection::draweach_2d_histograms() {
+void PlotCollection::draweach_2d_histograms() {
 	//TODO: allow draweach'ing 1d histograms
 	if (twodim_histograms.size() < 1) {
 		std::cout << "ERROR: draw before histograms are booked" << std::endl;
@@ -478,9 +492,9 @@ void HistogramCollection::draweach_2d_histograms() {
 	gStyle->SetOptStat(0);
 	//loop over regions
 	if (!is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
+				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
 				if (draw_log) {
 					c->SetLogz(true);
 				}
@@ -488,7 +502,7 @@ void HistogramCollection::draweach_2d_histograms() {
 				TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
 				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
 				cloned_hist->Draw("colz");
-				c->SaveAs(("plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions.get_name(region_idx)+".png").c_str());
+				c->SaveAs(("plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 				if (save_as_root) {
 					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
 					cloned_hist->Write();
@@ -498,9 +512,9 @@ void HistogramCollection::draweach_2d_histograms() {
 		}
 	}
 	else {
-		for (unsigned int region_idx = 0; region_idx < regions.size(); region_idx++) {
+		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions.get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
+				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
 				if (draw_log) {
 					c->SetLogz(true);
 				}
@@ -510,7 +524,7 @@ void HistogramCollection::draweach_2d_histograms() {
 				cloned_hist->Divide(cloned_denominator);
 				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
 				cloned_hist->Draw("colz");
-				c->SaveAs(("plots/eff_"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions.get_name(region_idx)+".png").c_str());
+				c->SaveAs(("plots/eff_"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
 				if (save_as_root) {
 					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
 					TH2D* cloned_numerator = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());

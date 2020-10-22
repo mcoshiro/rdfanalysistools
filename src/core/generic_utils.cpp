@@ -1,5 +1,20 @@
+#include <string>
+#include <sstream>
+#include <iomanip>
+
 #include "../../inc/core/generic_utils.hxx"
 #include "TMath.h"
+
+/**
+ * function that converts a float into a std::string with a fixed number of digits
+ */
+std::string float_to_string(float value, int precision) {
+  std::ostringstream str_stream;
+  str_stream << std::fixed;
+  str_stream << std::setprecision(precision);
+  str_stream << value;
+  return str_stream.str();
+}
 
 /**
  * function returning delta phi between two particles

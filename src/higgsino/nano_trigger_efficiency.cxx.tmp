@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "TMath.h"
@@ -180,22 +181,33 @@ bool met_trigger_20172018(bool const & HLT_PFMET110_PFMHT110_IDTight, bool const
 
 enum flags {
 	mc = 1,
-	data = 2
+	data = 2,
+	runb2017 = 3,
+	runcdef2017 = 4
 };
 
 int main() {
 	ROOT::EnableImplicitMT();
 	std::cout << "Setting up and filtering." << std::endl;
 	SampleCollection samples;
-	samples.add(SampleWrapper("data","/net/cms29/cms29r0/pico/NanoAODv5/nano/2016/data/JetHT*",kBlack,"data",true,"Events"), data);
-
-	samples.filter("HLT_PFHT200||HLT_PFHT250||HLT_PFHT300||HLT_PFHT350||HLT_PFHT400||HLT_PFHT475||HLT_PFHT600||HLT_PFHT650||HLT_PFHT900", "Trig:HT");
+	samples.add(SampleWrapper("data","/net/cms25/cms25r5/pico/NanoAODv5/nano/2018/data/JetHT__Run2018*",kBlack,"data",true,"Events"), data);
+	//samples.add(SampleWrapper("runb","/net/cms25/cms25r5/pico/NanoAODv5/nano/2017/data/JetHT__Run2017B*",kBlack,"data",true,"Events"), runb2017);
+	//std::vector<std::string> filenames2017cdef;
+	//filenames2017cdef.push_back("/net/cms25/cms25r5/pico/NanoAODv5/nano/2017/data/JetHT__Run2017C*");
+	//filenames2017cdef.push_back("/net/cms25/cms25r5/pico/NanoAODv5/nano/2017/data/JetHT__Run2017D*");
+	//filenames2017cdef.push_back("/net/cms25/cms25r5/pico/NanoAODv5/nano/2017/data/JetHT__Run2017E*");
+	//filenames2017cdef.push_back("/net/cms25/cms25r5/pico/NanoAODv5/nano/2017/data/JetHT__Run2017F*");
+	//samples.add(SampleWrapper("runcdef",filenames2017cdef,kBlack,"data",true,"Events"), runcdef2017);
+	samples.filter("HLT_PFHT180||HLT_PFHT250||HLT_PFHT350||HLT_PFHT370||HLT_PFHT430||HLT_PFHT510||HLT_PFHT590||HLT_PFHT680||HLT_PFHT780||HLT_PFHT890||HLT_PFHT1050", "Trig:HT");
 	samples.define("pass_muon_jet",pass_muon_jet,{"nJet", "Jet_eta", "Jet_pt", "Jet_muEF", "Jet_phi", "MET_phi"});
-	samples.define("pass",pass_2016,{"pass_muon_jet", "Flag_BadPFMuonFilter", "MET_pt", "CaloMET_pt", "Flag_goodVertices", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "nJet", "Jet_pt", "Jet_jetId"});
+	//samples.define("pass",pass_2016,{"pass_muon_jet", "Flag_BadPFMuonFilter", "MET_pt", "CaloMET_pt", "Flag_goodVertices", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "nJet", "Jet_pt", "Jet_jetId"});
+	samples.define("pass",pass_20172018,{"pass_muon_jet", "Flag_BadPFMuonFilter", "MET_pt", "CaloMET_pt", "Flag_goodVertices", "Flag_HBHENoiseFilter", "Flag_HBHENoiseIsoFilter", "Flag_EcalDeadCellTriggerPrimitiveFilter", "Flag_ecalBadCalibFilterV2", "nJet", "Jet_pt", "Jet_jetId"});
 	samples.define("low_dphi_met",low_dphi_met,{"nJet", "Jet_pt", "Jet_eta", "Jet_phi", "MET_phi"});
 	samples.define("nvel",nvel,{"nElectron", "Electron_pt", "Electron_eCorr", "Electron_eta", "Electron_vidNestedWPBitmap", "Electron_dz", "Electron_dxy", "Electron_miniPFRelIso_all"});
 	samples.define("nvmu",nvmu,{"nMuon", "Muon_pt", "Muon_eta", "Muon_mediumId", "Muon_dz", "Muon_dxy", "Muon_miniPFRelIso_all"});
-	samples.define("met_trigger",met_trigger_2016,{"HLT_PFMET110_PFMHT110_IDTight", "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight", "HLT_PFMET120_PFMHT120_IDTight", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"});
+	//samples.define("met_trigger",met_trigger_2016,{"HLT_PFMET110_PFMHT110_IDTight", "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight", "HLT_PFMET120_PFMHT120_IDTight", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight"},{runb2017});
+	//samples.define("met_trigger",met_trigger_20172018,{"HLT_PFMET110_PFMHT110_IDTight", "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight", "HLT_PFMET120_PFMHT120_IDTight", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight", "HLT_PFMET120_PFMHT120_IDTight_PFHT60", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60"},{runcdef2017});
+	samples.define("met_trigger",met_trigger_20172018,{"HLT_PFMET110_PFMHT110_IDTight", "HLT_PFMETNoMu110_PFMHTNoMu110_IDTight", "HLT_PFMET120_PFMHT120_IDTight", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight", "HLT_PFMET120_PFMHT120_IDTight_PFHT60", "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60"});
 	samples.define("weight","1");
 	samples.define("ht",ht,{"nJet", "Jet_pt", "Jet_eta"});
 	samples.filter("pass&&ht>140&&low_dphi_met&&nvel==0&&nvmu==0","Low #Delta#Phi, N_{ve}=N_{v#mu}=0");

@@ -1,5 +1,5 @@
-#ifndef H_HISTOGRAM_COLLECTION
-#define H_HISTOGRAM_COLLECTION
+#ifndef H_PLOT_COLLECTION
+#define H_PLOT_COLLECTION
 
 #include <string>
 #include <vector>
@@ -10,6 +10,7 @@
 #include "ROOT/RDF/InterfaceUtils.hxx"
 
 #include "../../inc/core/sample_wrapper.hxx"
+#include "../../inc/core/variable_axis.hxx"
 #include "../../inc/core/region_collection.hxx"
 
 /**
@@ -37,19 +38,20 @@ bool sort_by_maximum(HistogramAndStyle hist_a, HistogramAndStyle hist_b);
  * equipped with methods for drawing said histograms
  * also can be used for ratios/efficiency plots
  */
-class HistogramCollection {
+class PlotCollection {
 	private:
 		//internal variables
 		std::string name;
 		std::string yname;
 		std::string description;
 		std::string ydescription;
+		std::string file_extension;
 		std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> histograms;
 		std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> twodim_histograms;
 		std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> denominator_histograms;
 		std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> twodim_denominator_histograms;
 		std::vector<SampleWrapper*> samples;
-		RegionCollection regions;
+		RegionCollection* regions;
 		float luminosity;
 		bool draw_log;
 		bool is_2d;
@@ -70,22 +72,21 @@ class HistogramCollection {
 		/**
 		 * constructor to generate collection from a vector of vectors, for 1d histograms
 		 */
-		HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+		PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions);
 
 		/**
-		 * constructor to generate collection from a vector of vectors for 1d efficiencies
+		 * constructor to generate collection from a vector of vectors, for 1d efficiencies
 		 */
-		HistogramCollection(std::string i_name, std::string i_description, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+		PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions);
 
 		/**
 		 * constructor to generate collection from a vector of vectors for 2d histograms
 		 */
-		HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
-
+		PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions);
 		/**
-		 * constructor to generate collection from a vector of vectors for 2d efficiencies
+		 * constructor to generate collection from a vector of vectors, for 2d efficiencies
 		 */
-		HistogramCollection(std::string i_name, std::string i_description, std::string i_yname, std::string i_ydescription, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection i_regions);
+		PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions);
 
 		/**
 		 * function to save root file
@@ -105,7 +106,12 @@ class HistogramCollection {
 		/**
 		 * function to set log y
 		 */
-		void set_draw_log();
+		void set_draw_log(bool i_draw_log=true);
+
+		/**
+		 * function to set file extension
+		 */
+		void set_file_extension(std::string i_file_extension="pdf");
 
 		/**
 		 * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it

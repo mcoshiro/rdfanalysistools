@@ -5,10 +5,39 @@
  * flags argument can be used to only define colums for certain samples
  */
 template<typename F>
-void SampleCollection::define(const char* name, F expression, std::vector<std::string> columns, std::set<int> flags) {
-	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
-		if (flags.size() == 0 || flags.count(sample_flags[sample_idx])>0) {
-			samples[sample_idx].data_frame() = samples[sample_idx].data_frame().Define(name, expression, columns);
-		}
-	}
+void SampleCollection::define(const char* name, F expression, std::vector<std::string> columns, std::vector<std::string> flags) {
+  if (flags.size() > 0) {
+    //if flags provided, define this column only for samples with flag flag
+    for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+      for (std::string flag : flags) {
+        if (samples[sample_idx]->check_flag(flag)) {
+      	samples[sample_idx]->data_frame() = samples[sample_idx]->data_frame().Define(name, expression, columns);
+          break;
+        }
+      }
+    }
+  }
+  else {
+    //if no flags provided, define for all samples
+    for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+      samples[sample_idx]->data_frame() = samples[sample_idx]->data_frame().Define(name, expression, columns);
+    }
+  }
 }
+
+///**
+// * method to define data frame columns, see RInterface::Define
+// * flags argument can be used to only define colums for certain samples
+// */
+//template<typename F>
+//void SampleCollection::define(ColumnDefinition<F> column_definition, std::vector<std::string> flags) {
+//  for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+//    for (std::string flag : flags) {
+//      if (samples[sample_idx]->check_flag(flag)) {
+//    	samples[sample_idx]->data_frame() = samples[sample_idx]->data_frame().Define(
+//          column_definition.name, *column_name.evaluate, column_name.arguments);
+// 	break;
+//      }
+//    }
+//  }
+//}

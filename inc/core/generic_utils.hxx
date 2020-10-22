@@ -4,6 +4,11 @@
 //generic functions that may be useful
 
 /**
+ * function that converts a float into a std::string with a fixed number of digits
+ */
+std::string float_to_string(float value, int precision);
+
+/**
  * function returning delta phi between two particles
  */
 float delta_phi(float phi1, float phi2);
