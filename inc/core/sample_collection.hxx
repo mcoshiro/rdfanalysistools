@@ -64,23 +64,22 @@ class SampleCollection {
     /**
      * method to make 1d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo1D
      */
-    PlotCollection book_1d_histogram(VariableAxis axis, std::string_view weight, RegionCollection* regions=nullptr);
-    //PlotCollection book_1d_histogram(int nbins, double xlow, double xhigh, std::string variable, std::string description, std::string_view weight, RegionCollection regions=);
+    PlotCollection* book_1d_histogram(VariableAxis axis, std::string_view weight, RegionCollection* regions=nullptr);
     
     /**
      * method to make 1d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo1D
      */
-    PlotCollection book_1d_efficiency_plot(VariableAxis axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
+    PlotCollection* book_1d_efficiency_plot(VariableAxis axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
     
     /**
      * method to make 2d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo2D
      */
-    PlotCollection book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, RegionCollection* regions=nullptr);
+    PlotCollection* book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, RegionCollection* regions=nullptr);
     
     /**
      * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
      */
-    PlotCollection book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
+    PlotCollection* book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
     
     /**
      * method to make cutflow table

@@ -20,105 +20,114 @@
  * sorting function to sort histograms by integrated area
  */
 bool sort_by_integral(HistogramAndStyle hist_a, HistogramAndStyle hist_b) {
-	if (hist_a.histogram->Integral() < hist_b.histogram->Integral())
-		return true;
-	return false;
+  if (hist_a.histogram->Integral() < hist_b.histogram->Integral())
+    return true;
+  return false;
 }
 
 /**
  * sorting function to sort histograms based on their maximum value
  */
 bool sort_by_maximum(HistogramAndStyle hist_a, HistogramAndStyle hist_b) {
-	if (hist_a.histogram->GetBinContent(hist_a.histogram->GetMaximumBin()) > hist_b.histogram->GetBinContent(hist_b.histogram->GetMaximumBin()))
-		return true;
-	return false;
+  if (hist_a.histogram->GetBinContent(hist_a.histogram->GetMaximumBin()) > hist_b.histogram->GetBinContent(hist_b.histogram->GetMaximumBin()))
+    return true;
+  return false;
 }
 
 /**
  * constructor to generate collection from a vector of vectors for 1d histograms
  */
 PlotCollection::PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions)
-	: samples(i_samples)
+  : samples(i_samples)
 {
-	regions = i_regions;
-	name = axis.variable_name;
-	description = axis.variable_description;
-	histograms = i_histograms;
-	luminosity = 1.0;
-	draw_log = false;
-	is_efficiency = false;
-	is_2d = false;
-	save_as_root = false;
-	file_extension = "png";
+  regions = i_regions;
+  name = axis.variable_name;
+  description = axis.variable_description;
+  histograms = i_histograms;
+  luminosity = 1.0;
+  x_log = false;
+  y_log = false;
+  z_log = false;
+  is_efficiency = false;
+  is_2d = false;
+  save_as_root = false;
+  file_extension = "png";
+  plot_combine_style = PlotCombineStyle::overlay;
+  bottom_style = BottomStyle::none;
 }
 
 /**
  * constructor to generate collection from a vector of vectors for 1d efficiencies
  */
 PlotCollection::PlotCollection(VariableAxis axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> i_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions)
-	: samples(i_samples)
+  : samples(i_samples)
 {
-	std::string temp = numerator_description; //temp to avoid unused variable
-	regions = i_regions;
-	name = axis.variable_name;
-	description = axis.variable_description;
-	histograms = i_histograms;
-	denominator_histograms = i_denominator_histograms;
-	luminosity = 1.0;
-	draw_log = false;
-	is_efficiency = true;
-	is_2d = false;
-	save_as_root = false;
-	file_extension = "png";
+  std::string temp = numerator_description; //temp to avoid unused variable
+  regions = i_regions;
+  name = axis.variable_name;
+  description = axis.variable_description;
+  histograms = i_histograms;
+  denominator_histograms = i_denominator_histograms;
+  luminosity = 1.0;
+  x_log = false;
+  y_log = false;
+  z_log = false;
+  is_efficiency = true;
+  is_2d = false;
+  save_as_root = false;
+  file_extension = "png";
+  plot_combine_style = PlotCombineStyle::overlay;
+  bottom_style = BottomStyle::none;
 }
 
 /**
  * constructor to generate collection from a vector of vectors for 2d histograms
  */
 PlotCollection::PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<SampleWrapper*> i_samples, RegionCollection* i_regions)
-	: samples(i_samples)
+  : samples(i_samples)
 {
-	regions = i_regions;
-	name = x_axis.variable_name;
-	description = x_axis.variable_description;
-	yname = y_axis.variable_name;
-	ydescription = y_axis.variable_description;
-	twodim_histograms = i_twodim_histograms;
-	luminosity = 1.0;
-	draw_log = false;
-	is_efficiency = false;
-	is_2d = true;
-	save_as_root = false;
-	file_extension = "png";
+  regions = i_regions;
+  name = x_axis.variable_name;
+  description = x_axis.variable_description;
+  yname = y_axis.variable_name;
+  ydescription = y_axis.variable_description;
+  twodim_histograms = i_twodim_histograms;
+  luminosity = 1.0;
+  x_log = false;
+  y_log = false;
+  z_log = false;
+  is_efficiency = false;
+  is_2d = true;
+  save_as_root = false;
+  file_extension = "png";
+  plot_combine_style = PlotCombineStyle::overlay;
+  bottom_style = BottomStyle::none;
 }
 
 /**
  * constructor to generate collection from a vector of vectors, for 2d efficiencies
  */
 PlotCollection::PlotCollection(VariableAxis x_axis, VariableAxis y_axis, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_histograms, std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> i_twodim_denominator_histograms, std::vector<SampleWrapper*> i_samples, std::string numerator_description, RegionCollection* i_regions)
-	: samples(i_samples)
+  : samples(i_samples)
 {
-	std::string temp = numerator_description; //temp to avoid unused variable
-	regions = i_regions;
-	name = x_axis.variable_name;
-	description = x_axis.variable_description;
-	yname = y_axis.variable_name;
-	ydescription = y_axis.variable_description;
-	twodim_histograms = i_twodim_histograms;
-	twodim_denominator_histograms = i_twodim_denominator_histograms;
-	luminosity = 1.0;
-	draw_log = false;
-	is_efficiency = true;
-	is_2d = true;
-	save_as_root = false;
-	file_extension = "png";
-}
-
-/**
- * function to save root file
- */
-void PlotCollection::set_save_root_file(bool i_set_save_root_file) {
-	save_as_root = i_set_save_root_file;
+  std::string temp = numerator_description; //temp to avoid unused variable
+  regions = i_regions;
+  name = x_axis.variable_name;
+  description = x_axis.variable_description;
+  yname = y_axis.variable_name;
+  ydescription = y_axis.variable_description;
+  twodim_histograms = i_twodim_histograms;
+  twodim_denominator_histograms = i_twodim_denominator_histograms;
+  luminosity = 1.0;
+  x_log = false;
+  y_log = false;
+  z_log = false;
+  is_efficiency = true;
+  is_2d = true;
+  save_as_root = false;
+  file_extension = "png";
+  plot_combine_style = PlotCombineStyle::overlay;
+  bottom_style = BottomStyle::none;
 }
 
 /**
@@ -152,259 +161,204 @@ void PlotCollection::set_luminosity(float i_luminosity) {
 }
 
 /**
- * function to set log y
+ * function to save root file
  */
-void PlotCollection::set_draw_log(bool i_draw_log) {
-	draw_log = i_draw_log;
+PlotCollection* PlotCollection::set_save_root_file(bool i_set_save_root_file) {
+  save_as_root = i_set_save_root_file;
+  return this;
+}
+
+/**
+ * function to set log options
+ */
+PlotCollection* PlotCollection::set_log(bool i_x_log, bool i_y_log, bool i_z_log) {
+  x_log = i_x_log;
+  y_log = i_y_log;
+  z_log = i_z_log;
+  return this;
 }
 
 /**
  * function to set file extension
  */
-void PlotCollection::set_file_extension(std::string i_file_extension) {
-	file_extension = i_file_extension;
-}
-
-
-/**
- * function to draw several TH1's overlayed on each other
- */
-void PlotCollection::overlay_1d_histograms() {
-	//TODO: allow overlaying 1d efficiencies
-	if (histograms.size() < 1) {
-		std::cout << "ERROR: draw before histograms are booked" << std::endl;
-		return;
-	}
-	if (is_2d) {
-		std::cout << "ERROR: cannot overlay 2d histograms" << std::endl;
-		return;
-	}
-	gStyle->SetOptStat(0);
-	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
-		if (draw_log) {
-			c->SetLogy(true);
-		}
-		c->cd();
-		TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
-		//draw highest maximum histogram first so that canvas is scaled appropriately
-		std::vector<HistogramAndStyle> ordered_histograms;
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			ordered_histograms.push_back(HistogramAndStyle());
-			ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
-			ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
-			ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
-			ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
-		}
-		std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_maximum);
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			ordered_histograms[sample_idx].histogram->SetLineColor(ordered_histograms[sample_idx].color);
-			if (sample_idx == 0) {
-				ordered_histograms[sample_idx].histogram->DrawClone("e0");
-			}
-			else {
-				ordered_histograms[sample_idx].histogram->DrawClone("e0 same");
-			}
-			legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
-		}
-		legend->Draw();
-		c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-	}
-}
-
-
-/**
- * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
- */
-void PlotCollection::stack_1d_histograms(bool sort_histograms) {
-	if (histograms.size() < 1) {
-		std::cout << "ERROR: draw before histograms are booked" << std::endl;
-		return;
-	}
-	if (is_2d) {
-		std::cout << "ERROR: cannot stack 2d histograms" << std::endl;
-		return;
-	}
-	if (is_efficiency) {
-		std::cout << "ERROR: cannot stack ratios" << std::endl;
-		return;
-	}
-	gStyle->SetOptStat(0);
-	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
-		if (draw_log) {
-			c->SetLogy(true);
-		}
-		c->cd();
-		THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
-		TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
-		std::vector<HistogramAndStyle> ordered_histograms;
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			if (!samples[sample_idx]->is_data) {
-				ordered_histograms.push_back(HistogramAndStyle());
-				ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
-				ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
-				ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
-			}
-		}
-		if (sort_histograms) {
-			std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
-		}
-		for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-			ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
-			ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
-			TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
-			hist_stack->Add(draw_mc_hist,"hist");
-			legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
-		}
-		TH1D* data_hist;
-		bool has_data = false;
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			if (samples[sample_idx]->is_data) {
-				has_data = true;
-				data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-				data_hist->SetLineColor(samples[sample_idx]->sample_color);
-				legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
-			}
-		}
-		//set Y axis based on tallest bin
-		//make TH1D that is the sum of the MC histograms
-		TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
-		for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-			hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
-		}
-		float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
-		float y_axis_max = mc_max;
-		if (has_data) {
-			float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
-			y_axis_max = mc_max > data_max ? mc_max : data_max;
-		}
-		y_axis_max = y_axis_max * 1.15;
-		data_hist->Draw();
-		//is title already okay?
-		data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
-		data_hist->Draw("e0");
-		hist_stack->Draw("same");
-		data_hist->Draw("e0 same");
-		legend->Draw();
-		//draw any data
-		c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-	}
+PlotCollection* PlotCollection::set_file_extension(std::string i_file_extension) {
+  file_extension = i_file_extension;
+  return this;
 }
 
 /**
- * function to draw several TH1's stacked on each other; samples marked as 'data' will be drawn over the stack rather than in it
- * additionally, draw a data/MC ratio plot
+ * function to set combine style option
  */
-void PlotCollection::stack_ratio_1d_histograms(bool sort_histograms) {
-	if (histograms.size() < 1) {
-		std::cout << "ERROR: draw before histograms are booked" << std::endl;
-		return;
+PlotCollection* PlotCollection::set_plot_combine_style(PlotCombineStyle i_plot_combine_style) {
+  plot_combine_style = i_plot_combine_style;
+  return this;
+}
+
+/**
+ * function to set bottom style option
+ */
+PlotCollection* PlotCollection::set_bottom_style(BottomStyle i_bottom_style) {
+  bottom_style = i_bottom_style;
+  return this;
+}
+
+/**
+ * function to draw several 1d plots together (stacked/overlayed)
+ * for stacks, samples marked as 'data' will be drawn over the stack rather than in it
+ * sort_histograms - organize non-data histograms so largest non-data histograms are on top of stack
+ */
+void PlotCollection::draw_together(bool sort_histograms) {
+  //do checks
+  if (histograms.size() < 1) {
+    std::cout << "ERROR: draw before histograms are booked" << std::endl;
+    return;
+  }
+  if (is_2d) {
+    std::cout << "ERROR: drawing 2d histograms together is not implemented yet" << std::endl;
+    return;
+  }
+  if (is_efficiency && plot_combine_style == PlotCombineStyle::stack) {
+    std::cout << "ERROR: efficiencies cannot be stacked, automatically switching to overlay" << std::endl;
+    plot_combine_style = PlotCombineStyle::overlay;
+  }
+  gStyle->SetOptStat(0);
+  //regions
+  if (regions != nullptr) {
+    for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
+      TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
+      c->cd();
+      TPad *main_pad, *bottom_pad;
+      if (bottom_style == BottomStyle::none) {
+        main_pad = new TPad("main_pad","",0.0,0.0,1.0,1.0);
+	main_pad->Draw();
+      }
+      else {
+        //TODO: implement other bottom types, currently just ratio
+        main_pad = new TPad("main_pad","",0.0,0.2,1.0,1.0);
+        bottom_pad = new TPad("bottom_pad","",0.0,0.0,1.0,0.2);
+	main_pad->Draw();
+	bottom_pad->Draw();
+      }
+      main_pad->cd();
+      if (x_log) main_pad->SetLogx(true);
+      if (y_log) main_pad->SetLogy(true);
+      if (bottom_style != BottomStyle::none) {
+	gPad->SetBottomMargin(0);
+      }
+      TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
+      std::vector<HistogramAndStyle> ordered_histograms;
+      for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+	if (plot_combine_style == PlotCombineStyle::stack && samples[sample_idx]->is_data) {
+	  //for stacks, treat data separately from MC
 	}
-	if (is_2d) {
-		std::cout << "ERROR: cannot stack 2d histograms" << std::endl;
-		return;
+	else {
+          ordered_histograms.push_back(HistogramAndStyle());
+          ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
+          ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
+          ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
+          ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
 	}
-	if (is_efficiency) {
-		std::cout << "ERROR: cannot stack ratios" << std::endl;
-		return;
+      }
+      if (plot_combine_style == PlotCombineStyle::overlay) {
+	//if overlayed, draw highest maximum histogram first so that canvas is scaled appropriately
+        std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_maximum);
+      }
+      else {
+        if (sort_histograms) {
+          std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
+        }
+      }
+      if (plot_combine_style == PlotCombineStyle::overlay) {
+	//draw overlayed histograms
+        for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+          ordered_histograms[sample_idx].histogram->SetLineColor(ordered_histograms[sample_idx].color);
+          if (sample_idx == 0) {
+            ordered_histograms[sample_idx].histogram->DrawClone("e0");
+          }
+          else {
+            ordered_histograms[sample_idx].histogram->DrawClone("e0 same");
+          }
+          legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
+        }
+        legend->Draw();
+	main_pad->Modified();
+        c->Update();
+        c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
+      }
+      else {
+	//draw stacked histograms
+        THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
+        for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
+          ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
+          ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
+          TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
+          hist_stack->Add(draw_mc_hist,"hist");
+          legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
+        }
+        TH1D* data_hist;
+        bool has_data = false;
+        for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+          if (samples[sample_idx]->is_data) {
+            has_data = true;
+            data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
+            data_hist->SetLineColor(samples[sample_idx]->sample_color);
+            legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
+          }
+        }
+        //set Y axis based on tallest bin
+        //make TH1D that is the sum of the MC histograms
+        TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
+        for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
+          hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
+        }
+        float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
+        float y_axis_max = mc_max;
+        if (has_data) {
+          float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
+          y_axis_max = mc_max > data_max ? mc_max : data_max;
+        }
+        y_axis_max = y_axis_max * 1.15;
+        //draw any data
+        data_hist->Draw();
+        //is title already okay?
+        data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
+        data_hist->Draw("e0");
+        hist_stack->Draw("same");
+        data_hist->Draw("e0 same");
+        legend->Draw();
+	main_pad->Modified();
+	if (bottom_style != BottomStyle::none) {
+          //draw ratio plot
+          bottom_pad->cd();
+          gPad->SetTopMargin(0);
+          gPad->SetBottomMargin(0.22);
+          hist_ratio->Divide(data_hist,hist_ratio);
+          hist_ratio->GetYaxis()->SetRangeUser(0.4,1.6);
+          hist_ratio->SetTitleSize(0.1,"X");
+          hist_ratio->SetTitleSize(0.1,"Y");
+          hist_ratio->SetTitleOffset(1.0,"X");
+          hist_ratio->SetTitleOffset(0.4,"Y");
+          hist_ratio->SetLabelSize(0.1,"X");
+          hist_ratio->SetLabelSize(0.1,"Y");
+          hist_ratio->SetLineColor(kBlack);
+          hist_ratio->Draw("e0");
+          bottom_pad->Modified();
 	}
-	gStyle->SetOptStat(0);
-	//loop over regions
-	for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-		//split canvas into two pads; upper pad draws histograms lower pad draws ratio
-		TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
-		TPad* stack_pad = new TPad("stack_pad","",0.0,0.2,1.0,1.0);
-		TPad* ratio_pad = new TPad("ratio_pad","",0.0,0.0,1.0,0.2);
-		stack_pad->Draw();
-		ratio_pad->Draw();
-		stack_pad->cd();
-		gPad->SetBottomMargin(0);
-		//draw THStack
-		THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
-		TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
-		std::vector<HistogramAndStyle> ordered_histograms;
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			if (!samples[sample_idx]->is_data) {
-				ordered_histograms.push_back(HistogramAndStyle());
-				ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
-				ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
-				ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
-			}
-		}
-		if (sort_histograms) {
-			std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
-		}
-		for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-			ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
-			ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
-			TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
-			hist_stack->Add(draw_mc_hist,"hist");
-			legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
-		}
-		TH1D* data_hist;
-		bool has_data = false;
-		for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-			if (samples[sample_idx]->is_data) {
-				has_data = true;
-				data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-				data_hist->SetLineColor(samples[sample_idx]->sample_color);
-				legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
-			}
-		}
-		//set Y axis based on tallest bin
-		//make TH1D that is the sum of the MC histograms
-		TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
-		for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-			hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
-		}
-		float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
-		float y_axis_max = mc_max;
-		if (has_data) {
-			float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
-			y_axis_max = mc_max > data_max ? mc_max : data_max;
-		}
-		y_axis_max = y_axis_max * 1.15;
-		data_hist->Draw();
-		data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
-		data_hist->Draw("e0");
-		hist_stack->Draw("same");
-		hist_stack->GetHistogram()->GetXaxis()->SetTickLength(0);
-		hist_stack->GetHistogram()->GetXaxis()->SetLabelOffset(999);
-		data_hist->Draw("e0 same");
-		data_hist->GetXaxis()->SetTickLength(0);
-		data_hist->GetXaxis()->SetLabelOffset(999);
-		legend->Draw("same");
-		if (draw_log) {
-			stack_pad->SetLogy(true);
-		}
-		stack_pad->Modified();
-		//draw ratio plot
-		ratio_pad->cd();
-		gPad->SetTopMargin(0);
-		gPad->SetBottomMargin(0.22);
-		hist_ratio->Divide(data_hist,hist_ratio);
-		hist_ratio->GetYaxis()->SetRangeUser(0.4,1.6);
-		hist_ratio->SetTitleSize(0.1,"X");
-		hist_ratio->SetTitleSize(0.1,"Y");
-		hist_ratio->SetTitleOffset(1.0,"X");
-		hist_ratio->SetTitleOffset(0.4,"Y");
-		hist_ratio->SetLabelSize(0.1,"X");
-		hist_ratio->SetLabelSize(0.1,"Y");
-		hist_ratio->SetLineColor(kBlack);
-		hist_ratio->Draw("e0");
-		ratio_pad->Modified();
-		c->Update();
-		c->SaveAs(("plots/"+name+"_stack_ratio_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-	}
+        c->Update();
+        c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
+      }
+    }
+  }
+  //no regions
+  else {
+    //todo: implement this
+  }
 }
 
 /**
  * function to draw several histograms separately
  */
-void PlotCollection::draweach_histograms() {
+void PlotCollection::draw_separate() {
 	if (!is_2d) {
 		draweach_1d_histograms();
 	}
@@ -432,7 +386,7 @@ void PlotCollection::draweach_1d_histograms() {
 		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
 				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (draw_log) {
+				if (z_log) {
 					c->SetLogz(true);
 				}
 				c->cd();
@@ -452,7 +406,7 @@ void PlotCollection::draweach_1d_histograms() {
 		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
 				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (draw_log) {
+				if (z_log) {
 					c->SetLogz(true);
 				}
 				c->cd();
@@ -495,7 +449,7 @@ void PlotCollection::draweach_2d_histograms() {
 		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
 				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (draw_log) {
+				if (z_log) {
 					c->SetLogz(true);
 				}
 				c->cd();
@@ -515,7 +469,7 @@ void PlotCollection::draweach_2d_histograms() {
 		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
 			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
 				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (draw_log) {
+				if (z_log) {
 					c->SetLogz(true);
 				}
 				c->cd();

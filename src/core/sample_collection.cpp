@@ -94,7 +94,7 @@ ROOT::RDF::TH1DModel SampleCollection::get_1d_histogram_model(VariableAxis axis,
 /**
  * method to make 1d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo1D
  */
-PlotCollection SampleCollection::book_1d_histogram(VariableAxis axis, std::string_view weight, RegionCollection* regions) {
+PlotCollection* SampleCollection::book_1d_histogram(VariableAxis axis, std::string_view weight, RegionCollection* regions) {
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> histograms;
   //loop over samples
   for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
@@ -114,13 +114,13 @@ PlotCollection SampleCollection::book_1d_histogram(VariableAxis axis, std::strin
 	get_1d_histogram_model(axis,sample_idx),axis.variable_name,weight));
     }
   }
-  return PlotCollection(axis, histograms, samples, regions);
+  return new PlotCollection(axis, histograms, samples, regions);
 }
 
 /**
 * method to make 1d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo1D
 */
-PlotCollection SampleCollection::book_1d_efficiency_plot(VariableAxis axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions) {
+PlotCollection* SampleCollection::book_1d_efficiency_plot(VariableAxis axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions) {
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> histograms;
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH1D>>> denominator_histograms;
   //loop over samples
@@ -148,7 +148,7 @@ PlotCollection SampleCollection::book_1d_efficiency_plot(VariableAxis axis, std:
 	get_1d_histogram_model(axis,sample_idx),axis.variable_name,weight));
     }
   }
-  return PlotCollection(axis, histograms, denominator_histograms, samples, numerator_description, regions);
+  return new PlotCollection(axis, histograms, denominator_histograms, samples, numerator_description, regions);
 }
 
 ///**
@@ -212,7 +212,7 @@ ROOT::RDF::TH2DModel SampleCollection::get_2d_histogram_model(VariableAxis x_axi
 /**
  * method to make 2d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo2D
  */
-PlotCollection SampleCollection::book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, RegionCollection* regions) {
+PlotCollection* SampleCollection::book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, RegionCollection* regions) {
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> histograms;
   //loop over samples
   for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
@@ -232,36 +232,13 @@ PlotCollection SampleCollection::book_2d_histogram(VariableAxis x_axis, Variable
 	get_2d_histogram_model(x_axis,y_axis,sample_idx),x_axis.variable_name,y_axis.variable_name,weight));
     }
   }
-  return PlotCollection(x_axis, y_axis, histograms, samples, regions);
+  return new PlotCollection(x_axis, y_axis, histograms, samples, regions);
 }
-//HistogramCollection SampleCollection::book_2d_histogram(RegionCollection regions, int xnbins, double xlow, double xhigh, std::string xvariable, std::string xdescription, int ynbins, double ylow, double yhigh, std::string yvariable, std::string ydescription, std::string_view weight) {
-//	std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> histograms;
-//	std::vector<SampleWrapper*> sample_pointers;
-//	std::string x_internal_description = xdescription;
-//	std::string y_internal_description = ydescription;
-//	if (xdescription=="") x_internal_description = xvariable;
-//	if (ydescription=="") y_internal_description = yvariable;
-//	//loop over samples
-//	for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
-//		histograms.push_back(std::vector<ROOT::RDF::RResultPtr<TH2D>>());
-//		sample_pointers.push_back(&samples[sample_idx]);
-//		//loop over regions
-//		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-//			//filter sample to region
-//			ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void> region_data_frame = samples[sample_idx].data_frame().Filter(regions->get_cuts(region_idx, sample_flags[sample_idx]));
-//			histograms[sample_idx].push_back(region_data_frame.Histo2D({
-//				("hist_"+xvariable+"_"+yvariable+"_"+samples[sample_idx].sample_name+"_"+regions->get_name(region_idx)).c_str(),
-//				(y_internal_description+" vs. "+x_internal_description+" "+baseline_selection_descriptions[sample_idx]+", "+regions->get_description(region_idx)+"; "+x_internal_description+"; "+y_internal_description).c_str(),
-//				xnbins,xlow,xhigh,ynbins,ylow,yhigh},xvariable,yvariable,weight));
-//		}
-//	}
-//	return HistogramCollection(xvariable, x_internal_description, yvariable, y_internal_description, histograms, sample_pointers, regions);
-//}
 
 /**
  * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
  */
-PlotCollection SampleCollection::book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions) {
+PlotCollection* SampleCollection::book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions) {
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> histograms;
   std::vector<std::vector<ROOT::RDF::RResultPtr<TH2D>>> denominator_histograms;
   //loop over samples
@@ -289,7 +266,7 @@ PlotCollection SampleCollection::book_2d_efficiency_plot(VariableAxis x_axis, Va
 	get_2d_histogram_model(x_axis,y_axis,sample_idx),x_axis.variable_name,y_axis.variable_name,weight));
     }
   }
-  return PlotCollection(x_axis, y_axis, histograms, denominator_histograms, samples, 
+  return new PlotCollection(x_axis, y_axis, histograms, denominator_histograms, samples, 
     numerator_description, regions);
 }
 

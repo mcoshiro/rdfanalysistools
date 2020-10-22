@@ -190,9 +190,9 @@ int main() {
 	//enable multi-threading
 	//ROOT::EnableImplicitMT();
 	//defined samples and add to a sample collection
-	SampleWrapper *wz1 = new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",1,false,"mini");
-	SampleWrapper *wz2 = new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",1,false,"mini");
-	SampleWrapper *wz_data = new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",1,true,"mini");
+	SampleWrapper *wz1 = new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",35.6,false,"mini");
+	SampleWrapper *wz2 = new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",35.6,false,"mini");
+	SampleWrapper *wz_data = new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",35.6,true,"mini");
 	SampleCollection *samples = new SampleCollection();
 	samples->add(wz1);
 	samples->add(wz2);
@@ -207,23 +207,25 @@ int main() {
 	RegionCollection * regions = new RegionCollection();
 	regions->add("nl3","lep_n==3","N_{l} = 3");
 	//book histograms and set luminosity to scale MC
-	PlotCollection w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),"mcWeight",regions);
-	PlotCollection z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),"mcWeight",regions);
+	PlotCollection* w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),"mcWeight",regions);
+	PlotCollection* z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),"mcWeight",regions);
 	//generate several different types of plots
 	//booked histograms are generated upon calling any of the following methods, so it is good to book everything first
-	w_histogram.set_luminosity(0.5);
-	z_histogram.set_luminosity(0.5);
-	w_histogram.overlay_1d_histograms();
-	z_histogram.overlay_1d_histograms();
-	w_histogram.stack_1d_histograms();
-	z_histogram.stack_1d_histograms();
-	w_histogram.stack_ratio_1d_histograms();
-	z_histogram.stack_ratio_1d_histograms();
+	w_histogram->set_luminosity(0.5);
+	z_histogram->set_luminosity(0.5);
+	w_histogram->draw_together();
+	z_histogram->draw_together();
+	w_histogram->set_plot_combine_style(PlotCombineStyle::stack)->draw_together();
+	z_histogram->set_plot_combine_style(PlotCombineStyle::stack)->draw_together();
+	w_histogram->set_bottom_style(BottomStyle::ratio)->draw_together();
+	z_histogram->set_bottom_style(BottomStyle::ratio)->draw_together();
 	delete wz1;
         delete wz2;
 	delete wz_data;
 	delete regions;
 	delete samples;
+	delete w_histogram;
+	delete z_histogram;
 
 	////make a new SampleCollection for efficiency plots
 	//std::cout << "Running efficiency plot code." << std::endl;
