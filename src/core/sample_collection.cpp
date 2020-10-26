@@ -7,11 +7,13 @@
 #include "ROOT/RDF/RInterface.hxx"
 #include "ROOT/RDF/HistoModels.hxx"
 #include "ROOT/RDF/InterfaceUtils.hxx"
+#include "ROOT/RDF/RCutFlowReport.hxx"
 
-#include "../../inc/core/variable_axis.hxx"
-#include "../../inc/core/sample_wrapper.hxx"
-#include "../../inc/core/sample_collection.hxx"
-#include "../../inc/core/plot_collection.hxx"
+#include "core/variable_axis.hxx"
+#include "core/sample_wrapper.hxx"
+#include "core/sample_collection.hxx"
+#include "core/plot_collection.hxx"
+#include "core/table_collection.hxx"
 
 /**
  * default constructor
@@ -303,3 +305,14 @@ PlotCollection* SampleCollection::book_2d_efficiency_plot(VariableAxis x_axis, V
 //	}
 //	return HistogramCollection(xvariable, x_internal_description, yvariable, y_internal_description, histograms, denominator_histograms, sample_pointers, regions);
 //}
+
+/**
+ * method to make cutflow table, see RInterface::RCutFlowReport
+ */
+TableCollection* SampleCollection::book_cutflow_table() {
+  std::vector<ROOT::RDF::RResultPtr<ROOT::RDF::RCutFlowReport>> tables;
+  for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
+    tables.push_back(samples[sample_idx]->data_frame().Report());
+  }
+  return new TableCollection(tables, samples);
+}

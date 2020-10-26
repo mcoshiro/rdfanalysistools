@@ -16,7 +16,6 @@ class SampleWrapper {
   private:
     std::vector<std::string> sample_filenames;
     std::vector<std::string> flags;
-    std::vector<std::string> cuts;
     ROOT::RDF::RInterface<ROOT::Detail::RDF::RJittedFilter, void> sample_data_frame;
   
   public:
@@ -25,6 +24,7 @@ class SampleWrapper {
     bool is_data;
     std::string sample_name;
     std::string sample_description;
+    std::vector<std::string> cuts;
     
     /**
      * SampleWrapper constructor

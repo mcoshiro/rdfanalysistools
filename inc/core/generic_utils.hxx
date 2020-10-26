@@ -18,4 +18,9 @@ float delta_phi(float phi1, float phi2);
  */
 float delta_r(float eta1, float phi1, float eta2, float phi2);
 
+/**
+ * function returning transverse mass of two physics objets
+ */
+float mt(float pt1, float phi1, float pt2, float phi2);
+
 #endif

@@ -1,8 +1,8 @@
 #include <string>
 #include <vector>
 
-#include "../../inc/core/generic_utils.hxx"
-#include "../../inc/core/variable_axis.hxx"
+#include "core/generic_utils.hxx"
+#include "core/variable_axis.hxx"
 
 /**
  * uniform bin constructor

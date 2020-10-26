@@ -5,7 +5,6 @@
 #include <vector> 
 
 #include "ROOT/RVec.hxx"
-#include "../../inc/ttz/ttz_pico_utils.hxx"
 
 /**
  * z_m - returns mass of z-candidate

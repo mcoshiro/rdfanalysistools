@@ -4,7 +4,7 @@
 #include "ROOT/RDataFrame.hxx"
 #include "ROOT/RDF/RInterface.hxx"
 
-#include "../../inc/core/sample_wrapper.hxx"
+#include "core/sample_wrapper.hxx"
 
 /**
  * SampleWrapper constructor

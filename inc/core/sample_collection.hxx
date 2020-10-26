@@ -9,11 +9,12 @@
 #include "ROOT/RDF/RInterface.hxx"
 #include "ROOT/RDF/HistoModels.hxx"
 
-#include "../../inc/core/variable_axis.hxx"
-#include "../../inc/core/sample_wrapper.hxx"
-#include "../../inc/core/region_collection.hxx"
-#include "../../inc/core/plot_collection.hxx"
-//#include "../../inc/core/column_definition.hxx"
+#include "core/variable_axis.hxx"
+#include "core/sample_wrapper.hxx"
+#include "core/region_collection.hxx"
+#include "core/plot_collection.hxx"
+#include "core/table_collection.hxx"
+//#include "core/column_definition.hxx"
 
 //class to hold a collection of samples which can be used to make histograms, tables, etc.
 
@@ -84,7 +85,7 @@ class SampleCollection {
     /**
      * method to make cutflow table
      */
-    //CutflowTable make_cutflow_table();
+    TableCollection* book_cutflow_table();
 };
 
 #include "../../src/core/sample_collection.tpp"

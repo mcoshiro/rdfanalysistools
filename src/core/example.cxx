@@ -7,12 +7,12 @@
 #include "ROOT/RVec.hxx"
 #include "ROOT/RDF/RInterface.hxx"
 
-//#include "../../inc/core/column_definition.hxx"
-#include "../../inc/core/variable_axis.hxx"
-#include "../../inc/core/sample_wrapper.hxx"
-#include "../../inc/core/sample_collection.hxx"
-#include "../../inc/core/region_collection.hxx"
-#include "../../inc/core/plot_collection.hxx"
+//#include "core/column_definition.hxx"
+#include "core/variable_axis.hxx"
+#include "core/sample_wrapper.hxx"
+#include "core/sample_collection.hxx"
+#include "core/region_collection.hxx"
+#include "core/plot_collection.hxx"
 
 //helper functions
 //function that returns the number of electrons
@@ -190,6 +190,7 @@ int main() {
 	//enable multi-threading
 	//ROOT::EnableImplicitMT();
 	//defined samples and add to a sample collection
+	std::cout << "Initializing samples" << std::endl;
 	SampleWrapper *wz1 = new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",35.6,false,"mini");
 	SampleWrapper *wz2 = new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",35.6,false,"mini");
 	SampleWrapper *wz_data = new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",35.6,true,"mini");
@@ -198,6 +199,7 @@ int main() {
 	samples->add(wz2);
 	samples->add(wz_data);
 	//add a filter and define new columns
+	std::cout << "Defining variables and adding filters" << std::endl;
 	samples->filter("lep_n>0","N_{l}>0");
 	//samples.define("wcand_mt",wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
 	samples->define("wcand_mt",wcand_mt,wcand_mt_args);
@@ -206,11 +208,17 @@ int main() {
 	//define a region collection in which to make plots
 	RegionCollection * regions = new RegionCollection();
 	regions->add("nl3","lep_n==3","N_{l} = 3");
+	std::cout << "Booking plots and tables" << std::endl;
 	//book histograms and set luminosity to scale MC
 	PlotCollection* w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),"mcWeight",regions);
 	PlotCollection* z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),"mcWeight",regions);
 	//generate several different types of plots
+	//generate cutflow
+	samples->filter("lep_n>=3","N_{l} #geq 3");
+	samples->filter("zcand_m>81000&&zcand_m<101000","Z mass cut");
+	TableCollection* cutflow = samples->book_cutflow_table();
 	//booked histograms are generated upon calling any of the following methods, so it is good to book everything first
+	std::cout << "Drawing plots and tables" << std::endl;
 	w_histogram->set_luminosity(0.5);
 	z_histogram->set_luminosity(0.5);
 	w_histogram->draw_together();
@@ -219,6 +227,7 @@ int main() {
 	z_histogram->set_plot_combine_style(PlotCombineStyle::stack)->draw_together();
 	w_histogram->set_bottom_style(BottomStyle::ratio)->draw_together();
 	z_histogram->set_bottom_style(BottomStyle::ratio)->draw_together();
+	cutflow->print();
 	delete wz1;
         delete wz2;
 	delete wz_data;
@@ -226,6 +235,7 @@ int main() {
 	delete samples;
 	delete w_histogram;
 	delete z_histogram;
+	delete cutflow;
 
 	////make a new SampleCollection for efficiency plots
 	//std::cout << "Running efficiency plot code." << std::endl;

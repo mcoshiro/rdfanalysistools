@@ -3,8 +3,8 @@
 #include <vector>
 #include <utility>
 
-#include "../../inc/core/sample_wrapper.hxx"
-#include "../../inc/core/region_collection.hxx"
+#include "core/sample_wrapper.hxx"
+#include "core/region_collection.hxx"
 
 /**
  * default constructor

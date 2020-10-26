@@ -9,9 +9,9 @@
 #include "ROOT/RResultPtr.hxx"
 #include "ROOT/RDF/InterfaceUtils.hxx"
 
-#include "../../inc/core/sample_wrapper.hxx"
-#include "../../inc/core/variable_axis.hxx"
-#include "../../inc/core/region_collection.hxx"
+#include "core/sample_wrapper.hxx"
+#include "core/variable_axis.hxx"
+#include "core/region_collection.hxx"
 
 /**
  * struct to be used when sorting histograms
