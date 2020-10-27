@@ -17,7 +17,7 @@
  * struct to be used when sorting histograms
  */
 struct HistogramAndStyle {
-  ROOT::RDF::RResultPtr<TH1D> histogram;
+  TH1D* histogram;
   std::string description;
   short color;
   bool is_data;
@@ -74,14 +74,29 @@ class PlotCollection {
     BottomStyle bottom_style;
     
     /**
-     * function to draw several TH1's separately
+     * function to draw a histogram for a single region
      */
-    void draweach_1d_histograms();
-    
+    void draw_histogram_single_region(unsigned int region_idx);
+
     /**
-     * function to draw several TH2's separately
+     * function to draw an efficiency plot for a single region
      */
-    void draweach_2d_histograms();
+    void draw_efficiency_plot_single_region(unsigned int region_idx);
+
+    /**
+     * function to draw a 2d histogram for a single region
+     */
+    void draw_2d_histogram_single_region(unsigned int region_idx);
+
+    /**
+     * function to draw a 2d efficiency plot for a single region
+     */
+    void draw_2d_efficiency_plot_single_region(unsigned int region_idx);
+
+    /**
+     * internal function for plotting several plots together for a single region
+     */
+    void draw_together_single_region(bool sort_histograms, bool is_region, unsigned int region_idx);
   
   public:
     /**

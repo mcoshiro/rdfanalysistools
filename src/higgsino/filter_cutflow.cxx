@@ -555,31 +555,33 @@ bool Flag_MuonJetFilter(RVec<bool> const & Jet_isLep, RVec<float> const & Jet_pt
 std::vector<std::string> Flag_MuonJetFilter_args = {"Jet_isLep","Jet_pt","Jet_eta","Jet_phi","Jet_muEF","MET_phi"};
 
 
-bool Flag_LowNeutralJetFilter(RVec<float> const & Jet_pt, RVec<float> const & Jet_eta, RVec<float> const & Jet_phi, RVec<float> const & Jet_neEmEF, float const & MET_phi) {
+bool Flag_LowNeutralJetFilter(RVec<float> const & Jet_phi, RVec<float> const & Jet_neEmEF, float const & MET_phi) {
   bool pass_low_neutral_jet = true;
-  for (unsigned int jet_idx = 0; jet_idx < Jet_pt.size(); jet_idx++) {
-    if (Jet_pt[jet_idx] <= 30. || TMath::Abs(Jet_eta[jet_idx])>2.4) continue;
+  for (unsigned int jet_idx = 0; jet_idx < Jet_phi.size(); jet_idx++) {
+    //currently, no pt or eta cuts
+    //if (Jet_pt[jet_idx] <= 30. || TMath::Abs(Jet_eta[jet_idx])>2.4) continue;
     if (Jet_neEmEF[jet_idx] < 0.03 && delta_phi(Jet_phi[jet_idx], MET_phi)>(TMath::Pi()-0.4))
       pass_low_neutral_jet = false;
     break;
   }
   return pass_low_neutral_jet;
 }
-std::vector<std::string> Flag_LowNeutralJetFilter_args = {"Jet_pt","Jet_eta","Jet_phi","Jet_neEmEF","MET_phi"};
+std::vector<std::string> Flag_LowNeutralJetFilter_args = {"Jet_phi","Jet_neEmEF","MET_phi"};
 
 
-bool Flag_HTRatioDPhiTightFilter(RVec<float> const & Jet_pt, RVec<float> const & Jet_eta, RVec<float> const & Jet_phi, float const & MET_phi, float const & HT_pt, float const & HT5_pt) {
+bool Flag_HTRatioDPhiTightFilter(RVec<float> const & Jet_phi, float const & MET_phi, float const & HT_pt, float const & HT5_pt) {
   bool pass_htratio_dphi_tight = true;
   float htratio = HT5_pt/HT_pt;
-  for (unsigned int jet_idx = 0; jet_idx < Jet_pt.size(); jet_idx++) {
-    if (Jet_pt[jet_idx] < 30. || TMath::Abs(Jet_eta[jet_idx])>2.4) continue;
+  for (unsigned int jet_idx = 0; jet_idx < Jet_phi.size(); jet_idx++) {
+    //currently, no pt or eta cuts
+    //if (Jet_pt[jet_idx] < 30. || TMath::Abs(Jet_eta[jet_idx])>2.4) continue;
     if (htratio >= 1.2 && delta_phi(Jet_phi[jet_idx], MET_phi)<(5.3*htratio-4.78))
       pass_htratio_dphi_tight = false;
     break;
   }
   return pass_htratio_dphi_tight;
 }
-std::vector<std::string> Flag_HTRatioDPhiTightFilter_args = {"Jet_pt","Jet_eta","Jet_phi","MET_phi","HT_pt","HT5_pt"};
+std::vector<std::string> Flag_HTRatioDPhiTightFilter_args = {"Jet_phi","MET_phi","HT_pt","HT5_pt"};
 
 
 bool Flag_HEMDPhiVetoFilter(RVec<bool> const & Electron_isVeto, RVec<float> const & Electron_eta, RVec<float> const & Electron_phi, RVec<float> const & Electron_miniPFRelIso_all, RVec<float> const & Jet_pt, RVec<float> const & Jet_eta, RVec<float> const & Jet_phi, float const & MET_phi) {
@@ -619,6 +621,7 @@ int main() {
 	SampleWrapper *met2016c = (new SampleWrapper("met__run2016c",{"/net/cms25/cms25r5/pico/NanoAODv5/nano/2016/data/MET__Run2016C*"},kBlack,"MET 2016C",1.0,true,"Events"))->add_flag("2016");
 	SampleWrapper *met2018d = (new SampleWrapper("met__run2018d",{"/net/cms25/cms25r5/pico/NanoAODv7/nano/2018/data/MET__Run2018D*"},kBlack,"MET 2018D",1.0,true,"Events"))->add_flag("2018");
 	SampleCollection* samples = new SampleCollection;
+	samples->add(met2016c);
 	samples->add(met2018d);
 
 	samples->define("Electron_isInPico",Electron_isInPico,Electron_isInPico_args);

@@ -38,6 +38,11 @@ class TableCollection {
      * function to print table to terminal
      */
     void print();
+
+    /**
+     * function to save table to tex file
+     */
+    void save(std::string filename);
   
 };
 

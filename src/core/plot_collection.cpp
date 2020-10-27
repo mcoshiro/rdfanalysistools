@@ -203,133 +203,148 @@ PlotCollection* PlotCollection::set_bottom_style(BottomStyle i_bottom_style) {
 }
 
 
-///**
-// * internal function for plotting several plots together for a single region
-// */
-//void PlotCollection::draw_together_single_region(std::string canvas_name) {
-//  TCanvas* c = new TCanvas((canvas_name+"_canvas").c_str());
-//  c->cd();
-//  TPad *main_pad, *bottom_pad;
-//  if (bottom_style == BottomStyle::none) {
-//    main_pad = new TPad("main_pad","",0.0,0.0,1.0,1.0);
-//    main_pad->Draw();
-//  }
-//  else {
-//    //TODO: implement other bottom types, currently just ratio
-//    main_pad = new TPad("main_pad","",0.0,0.2,1.0,1.0);
-//    bottom_pad = new TPad("bottom_pad","",0.0,0.0,1.0,0.2);
-//    main_pad->Draw();
-//    bottom_pad->Draw();
-//  }
-//  main_pad->cd();
-//  if (x_log) main_pad->SetLogx(true);
-//  if (y_log) main_pad->SetLogy(true);
-//  if (bottom_style != BottomStyle::none) {
-//    gPad->SetBottomMargin(0);
-//  }
-//  TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
-//  std::vector<HistogramAndStyle> ordered_histograms;
-//  for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-//    if (plot_combine_style == PlotCombineStyle::stack && samples[sample_idx]->is_data) {
-//      //for stacks, treat data separately from MC
-//    }
-//    else {
-//      ordered_histograms.push_back(HistogramAndStyle());
-//      ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
-//      ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
-//      ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
-//      ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
-//    }
-//  }
-//  if (plot_combine_style == PlotCombineStyle::overlay) {
-//    //if overlayed, draw highest maximum histogram first so that canvas is scaled appropriately
-//    std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_maximum);
-//  }
-//  else {
-//    if (sort_histograms) {
-//      std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
-//    }
-//  }
-//  if (plot_combine_style == PlotCombineStyle::overlay) {
-//    //draw overlayed histograms
-//    for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-//      ordered_histograms[sample_idx].histogram->SetLineColor(ordered_histograms[sample_idx].color);
-//      if (sample_idx == 0) {
-//        ordered_histograms[sample_idx].histogram->DrawClone("e0");
-//      }
-//      else {
-//        ordered_histograms[sample_idx].histogram->DrawClone("e0 same");
-//      }
-//      legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
-//    }
-//    legend->Draw();
-//    main_pad->Modified();
-//    c->Update();
-//    c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-//  }
-//  else {
-//    //draw stacked histograms
-//    THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
-//    for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-//      ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
-//      ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
-//      TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
-//      hist_stack->Add(draw_mc_hist,"hist");
-//      legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
-//    }
-//    TH1D* data_hist;
-//    bool has_data = false;
-//    for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-//      if (samples[sample_idx]->is_data) {
-//        has_data = true;
-//        data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-//        data_hist->SetLineColor(samples[sample_idx]->sample_color);
-//        legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
-//      }
-//    }
-//    //set Y axis based on tallest bin
-//    //make TH1D that is the sum of the MC histograms
-//    TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
-//    for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-//      hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
-//    }
-//    float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
-//    float y_axis_max = mc_max;
-//    if (has_data) {
-//      float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
-//      y_axis_max = mc_max > data_max ? mc_max : data_max;
-//    }
-//    y_axis_max = y_axis_max * 1.15;
-//    //draw any data
-//    data_hist->Draw();
-//    //is title already okay?
-//    data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
-//    data_hist->Draw("e0");
-//    hist_stack->Draw("same");
-//    data_hist->Draw("e0 same");
-//    legend->Draw();
-//    main_pad->Modified();
-//    if (bottom_style != BottomStyle::none) {
-//      //draw ratio plot
-//      bottom_pad->cd();
-//      gPad->SetTopMargin(0);
-//      gPad->SetBottomMargin(0.22);
-//      hist_ratio->Divide(data_hist,hist_ratio);
-//      hist_ratio->GetYaxis()->SetRangeUser(0.4,1.6);
-//      hist_ratio->SetTitleSize(0.1,"X");
-//      hist_ratio->SetTitleSize(0.1,"Y");
-//      hist_ratio->SetTitleOffset(1.0,"X");
-//      hist_ratio->SetTitleOffset(0.4,"Y");
-//      hist_ratio->SetLabelSize(0.1,"X");
-//      hist_ratio->SetLabelSize(0.1,"Y");
-//      hist_ratio->SetLineColor(kBlack);
-//      hist_ratio->Draw("e0");
-//      bottom_pad->Modified();
-//    }
-//    c->Update();
-//    c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-//  }
-//}
+/**
+ * internal function for plotting several plots together for a single region
+ */
+void PlotCollection::draw_together_single_region(bool sort_histograms, bool is_region, unsigned int region_idx) {
+  std::string canvas_name = name+"_canvas";
+  if (is_region) canvas_name = name+"_"+regions->get_name(region_idx)+"_canvas";
+  TCanvas* c = new TCanvas(canvas_name.c_str());
+  c->cd();
+  TPad *main_pad, *bottom_pad;
+  if (bottom_style == BottomStyle::none) {
+    main_pad = new TPad("main_pad","",0.0,0.0,1.0,1.0);
+    main_pad->Draw();
+  }
+  else {
+    //TODO: implement other bottom types, currently just ratio
+    main_pad = new TPad("main_pad","",0.0,0.2,1.0,1.0);
+    bottom_pad = new TPad("bottom_pad","",0.0,0.0,1.0,0.2);
+    main_pad->Draw();
+    bottom_pad->Draw();
+  }
+  main_pad->cd();
+  if (x_log) main_pad->SetLogx(true);
+  if (y_log) main_pad->SetLogy(true);
+  if (bottom_style != BottomStyle::none) {
+    gPad->SetBottomMargin(0);
+  }
+  TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
+  std::vector<HistogramAndStyle> ordered_histograms;
+  for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+    if (plot_combine_style == PlotCombineStyle::stack && samples[sample_idx]->is_data) {
+      //for stacks, treat data separately from MC
+    }
+    else {
+      ordered_histograms.push_back(HistogramAndStyle());
+      ordered_histograms[sample_idx].histogram = static_cast<TH1D*>((histograms[sample_idx][region_idx])->Clone());
+      //scale MC by lumi
+      if (!samples[sample_idx]->is_data)
+        ordered_histograms[sample_idx].histogram->Scale(samples[sample_idx]->luminosity);
+      ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
+      ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
+      ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
+    }
+  }
+  if (plot_combine_style == PlotCombineStyle::overlay) {
+    //if overlayed, draw highest maximum histogram first so that canvas is scaled appropriately
+    std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_maximum);
+  }
+  else {
+    if (sort_histograms) {
+      std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
+    }
+  }
+  if (plot_combine_style == PlotCombineStyle::overlay) {
+    //draw overlayed histograms
+    for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+      ordered_histograms[sample_idx].histogram->SetLineColor(ordered_histograms[sample_idx].color);
+      if (sample_idx == 0) {
+        ordered_histograms[sample_idx].histogram->DrawClone("e0");
+      }
+      else {
+        ordered_histograms[sample_idx].histogram->DrawClone("e0 same");
+      }
+      legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
+    }
+    legend->Draw();
+    main_pad->Modified();
+    c->Update();
+    if (is_region) {
+      c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
+    }
+    else {
+      c->SaveAs(("plots/"+name+"_overlay."+file_extension).c_str());
+    }
+  }
+  else {
+    //draw stacked histograms
+    THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
+    for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
+      ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
+      ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
+      TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
+      hist_stack->Add(draw_mc_hist,"hist");
+      legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
+    }
+    TH1D* data_hist;
+    bool has_data = false;
+    for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+      if (samples[sample_idx]->is_data) {
+        has_data = true;
+        data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
+        data_hist->SetLineColor(samples[sample_idx]->sample_color);
+        legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
+      }
+    }
+    //set Y axis based on tallest bin
+    //make TH1D that is the sum of the MC histograms
+    TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
+    for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
+      hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
+    }
+    float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
+    float y_axis_max = mc_max;
+    if (has_data) {
+      float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
+      y_axis_max = mc_max > data_max ? mc_max : data_max;
+    }
+    y_axis_max = y_axis_max * 1.15;
+    //draw any data
+    data_hist->Draw();
+    //is title already okay?
+    data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
+    data_hist->Draw("e0");
+    hist_stack->Draw("same");
+    data_hist->Draw("e0 same");
+    legend->Draw();
+    main_pad->Modified();
+    if (bottom_style != BottomStyle::none) {
+      //draw ratio plot
+      bottom_pad->cd();
+      gPad->SetTopMargin(0);
+      gPad->SetBottomMargin(0.22);
+      hist_ratio->Divide(data_hist,hist_ratio);
+      hist_ratio->GetYaxis()->SetRangeUser(0.4,1.6);
+      hist_ratio->SetTitleSize(0.1,"X");
+      hist_ratio->SetTitleSize(0.1,"Y");
+      hist_ratio->SetTitleOffset(1.0,"X");
+      hist_ratio->SetTitleOffset(0.4,"Y");
+      hist_ratio->SetLabelSize(0.1,"X");
+      hist_ratio->SetLabelSize(0.1,"Y");
+      hist_ratio->SetLineColor(kBlack);
+      hist_ratio->Draw("e0");
+      bottom_pad->Modified();
+    }
+    c->Update();
+    if (is_region) {
+      c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
+    }
+    else {
+      c->SaveAs(("plots/"+name+"_stack."+file_extension).c_str());
+    }
+  }
+}
 
 
 /**
@@ -355,269 +370,172 @@ void PlotCollection::draw_together(bool sort_histograms) {
   //regions
   if (regions != nullptr) {
     for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-      TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_canvas").c_str());
-      c->cd();
-      TPad *main_pad, *bottom_pad;
-      if (bottom_style == BottomStyle::none) {
-        main_pad = new TPad("main_pad","",0.0,0.0,1.0,1.0);
-	main_pad->Draw();
-      }
-      else {
-        //TODO: implement other bottom types, currently just ratio
-        main_pad = new TPad("main_pad","",0.0,0.2,1.0,1.0);
-        bottom_pad = new TPad("bottom_pad","",0.0,0.0,1.0,0.2);
-	main_pad->Draw();
-	bottom_pad->Draw();
-      }
-      main_pad->cd();
-      if (x_log) main_pad->SetLogx(true);
-      if (y_log) main_pad->SetLogy(true);
-      if (bottom_style != BottomStyle::none) {
-	gPad->SetBottomMargin(0);
-      }
-      TLegend* legend = new TLegend(0.75,0.75,0.9,0.9);
-      std::vector<HistogramAndStyle> ordered_histograms;
-      for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-	if (plot_combine_style == PlotCombineStyle::stack && samples[sample_idx]->is_data) {
-	  //for stacks, treat data separately from MC
-	}
-	else {
-          ordered_histograms.push_back(HistogramAndStyle());
-          ordered_histograms[sample_idx].histogram = histograms[sample_idx][region_idx];
-          ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
-          ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
-          ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
-	}
-      }
-      if (plot_combine_style == PlotCombineStyle::overlay) {
-	//if overlayed, draw highest maximum histogram first so that canvas is scaled appropriately
-        std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_maximum);
-      }
-      else {
-        if (sort_histograms) {
-          std::sort(ordered_histograms.begin(),ordered_histograms.end(),sort_by_integral);
-        }
-      }
-      if (plot_combine_style == PlotCombineStyle::overlay) {
-	//draw overlayed histograms
-        for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-          ordered_histograms[sample_idx].histogram->SetLineColor(ordered_histograms[sample_idx].color);
-          if (sample_idx == 0) {
-            ordered_histograms[sample_idx].histogram->DrawClone("e0");
-          }
-          else {
-            ordered_histograms[sample_idx].histogram->DrawClone("e0 same");
-          }
-          legend->AddEntry(ordered_histograms[sample_idx].histogram->GetName(),ordered_histograms[sample_idx].description.c_str());
-        }
-        legend->Draw();
-	main_pad->Modified();
-        c->Update();
-        c->SaveAs(("plots/"+name+"_overlay_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-      }
-      else {
-	//draw stacked histograms
-        THStack* hist_stack = new THStack((regions->get_name(region_idx)+"_hist_stack").c_str(),histograms[0][region_idx]->GetTitle());
-        for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-          ordered_histograms[mc_sample_idx].histogram->SetLineColor(ordered_histograms[mc_sample_idx].color);
-          ordered_histograms[mc_sample_idx].histogram->SetFillColor(ordered_histograms[mc_sample_idx].color);
-          TH1D* draw_mc_hist = static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()); 
-          hist_stack->Add(draw_mc_hist,"hist");
-          legend->AddEntry(draw_mc_hist,ordered_histograms[mc_sample_idx].description.c_str(),"f");
-        }
-        TH1D* data_hist;
-        bool has_data = false;
-        for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-          if (samples[sample_idx]->is_data) {
-            has_data = true;
-            data_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-            data_hist->SetLineColor(samples[sample_idx]->sample_color);
-            legend->AddEntry(histograms[sample_idx][region_idx]->GetName(),(samples[sample_idx]->sample_description).c_str());
-          }
-        }
-        //set Y axis based on tallest bin
-        //make TH1D that is the sum of the MC histograms
-        TH1D* hist_ratio = new TH1D("hist_ratio",(";"+std::string(ordered_histograms[0].histogram->GetXaxis()->GetTitle())+";data/MC").c_str(),data_hist->GetNbinsX(),data_hist->GetXaxis()->GetXmin(),data_hist->GetXaxis()->GetXmax());
-        for (unsigned int mc_sample_idx = 0; mc_sample_idx < ordered_histograms.size(); mc_sample_idx++) {
-          hist_ratio->Add(static_cast<TH1D*>(ordered_histograms[mc_sample_idx].histogram->Clone()));
-        }
-        float mc_max = hist_ratio->GetBinContent(hist_ratio->GetMaximumBin());
-        float y_axis_max = mc_max;
-        if (has_data) {
-          float data_max = data_hist->GetBinContent(data_hist->GetMaximumBin());
-          y_axis_max = mc_max > data_max ? mc_max : data_max;
-        }
-        y_axis_max = y_axis_max * 1.15;
-        //draw any data
-        data_hist->Draw();
-        //is title already okay?
-        data_hist->GetYaxis()->SetRangeUser(0,y_axis_max);
-        data_hist->Draw("e0");
-        hist_stack->Draw("same");
-        data_hist->Draw("e0 same");
-        legend->Draw();
-	main_pad->Modified();
-	if (bottom_style != BottomStyle::none) {
-          //draw ratio plot
-          bottom_pad->cd();
-          gPad->SetTopMargin(0);
-          gPad->SetBottomMargin(0.22);
-          hist_ratio->Divide(data_hist,hist_ratio);
-          hist_ratio->GetYaxis()->SetRangeUser(0.4,1.6);
-          hist_ratio->SetTitleSize(0.1,"X");
-          hist_ratio->SetTitleSize(0.1,"Y");
-          hist_ratio->SetTitleOffset(1.0,"X");
-          hist_ratio->SetTitleOffset(0.4,"Y");
-          hist_ratio->SetLabelSize(0.1,"X");
-          hist_ratio->SetLabelSize(0.1,"Y");
-          hist_ratio->SetLineColor(kBlack);
-          hist_ratio->Draw("e0");
-          bottom_pad->Modified();
-	}
-        c->Update();
-        c->SaveAs(("plots/"+name+"_stack_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-      }
+      draw_together_single_region(sort_histograms, true, region_idx);
     }
   }
   //no regions
   else {
-    //todo: implement this
+    draw_together_single_region(sort_histograms, false, 0);
   }
 }
 
 /**
- * function to draw several histograms separately
+ * function to draw several plots separately
  */
 void PlotCollection::draw_separate() {
-	if (!is_2d) {
-		draweach_1d_histograms();
-	}
-	else {
-		draweach_2d_histograms();
-	}
+  //TODO: allow draweach'ing 1d histograms
+  if (histograms.size() < 1) {
+    std::cout << "ERROR: draw before histograms are booked" << std::endl;
+    return;
+  }
+  gStyle->SetOptStat(0);
+  //loop over regions
+  if (!is_efficiency) {
+    if (regions != nullptr) {
+      for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
+	if (is_2d)
+          draw_2d_histogram_single_region(region_idx);
+	else
+          draw_histogram_single_region(region_idx);
+      }
+    }
+    else {
+      if (is_2d)
+        draw_2d_histogram_single_region(0);
+      else
+        draw_histogram_single_region(0);
+    }
+  }
+  else {
+    if (regions != nullptr) {
+      for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
+	if (is_2d) 
+	  draw_2d_efficiency_plot_single_region(region_idx);
+	else
+	  draw_efficiency_plot_single_region(region_idx);
+      }
+    }
+    else {
+      if (is_2d)
+        draw_2d_efficiency_plot_single_region(0);
+      else
+        draw_efficiency_plot_single_region(0);
+    }
+  }
 }
 
 /**
- * function to draw several TH1's separately
+ * function to draw a histogram for a single region
  */
-void PlotCollection::draweach_1d_histograms() {
-	//TODO: allow draweach'ing 1d histograms
-	if (histograms.size() < 1) {
-		std::cout << "ERROR: draw before histograms are booked" << std::endl;
-		return;
-	}
-	if (is_2d) {
-		std::cout << "ERROR: draweach 1d called on 2d histograms" << std::endl;
-		return;
-	}
-	gStyle->SetOptStat(0);
-	//loop over regions
-	if (!is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (z_log) {
-					c->SetLogz(true);
-				}
-				c->cd();
-				TH1D* cloned_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
-				cloned_hist->Draw("e0");
-				c->SaveAs(("plots/"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-				if (save_as_root) {
-					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
-					cloned_hist->Write();
-					out_file->Close();
-				}
-			}
-		}
-	}
-	else {
-		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-			for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (z_log) {
-					c->SetLogz(true);
-				}
-				c->cd();
-				TH1D* cloned_numerator = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
-				TH1D* cloned_denominator = static_cast<TH1D*>(denominator_histograms[sample_idx][region_idx]->Clone());
-  				TGraphAsymmErrors* hist_ratio = new TGraphAsymmErrors(cloned_numerator,cloned_denominator,"cp");
-				hist_ratio->SetTitle((samples[sample_idx]->sample_description+" "+cloned_numerator->GetTitle()).c_str());
-				hist_ratio->GetXaxis()->SetTitle(cloned_numerator->GetXaxis()->GetTitle());
-				hist_ratio->GetYaxis()->SetTitle(cloned_numerator->GetYaxis()->GetTitle());
-				hist_ratio->Draw("AP");
-				c->SaveAs(("plots/eff_"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-				if (save_as_root) {
-					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
-					cloned_numerator->Write();
-					cloned_denominator->Write();
-					hist_ratio->Write();
-					out_file->Close();
-				}
-			}
-		}
-	}
+void PlotCollection::draw_histogram_single_region(unsigned int region_idx) {
+  for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+    std::string canvas_name = name+"_"+samples[sample_idx]->sample_name+"_canvas";
+    if (regions != nullptr) canvas_name = name+"_"+regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas";
+    TCanvas* c = new TCanvas(canvas_name.c_str());
+    if (y_log) {
+      c->SetLogy(true);
+    }
+    c->cd();
+    TH1D* cloned_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
+    cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
+    cloned_hist->Draw("e0");
+    std::string file_name = "plots/"+name+"_"+samples[sample_idx]->sample_name+"."+file_extension;
+    if (regions != nullptr) file_name = "plots/"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension;
+    c->SaveAs(file_name.c_str());
+    if (save_as_root) {
+      TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
+      cloned_hist->Write();
+      out_file->Close();
+    }
+  }
 }
 
 /**
- * function to draw several TH2's separately
+ * function to draw an efficiency plot for a single region
  */
-void PlotCollection::draweach_2d_histograms() {
-	//TODO: allow draweach'ing 1d histograms
-	if (twodim_histograms.size() < 1) {
-		std::cout << "ERROR: draw before histograms are booked" << std::endl;
-		return;
-	}
-	if (!is_2d) {
-		std::cout << "ERROR: draweach 2d called on 1d histograms" << std::endl;
-		return;
-	}
-	gStyle->SetOptStat(0);
-	//loop over regions
-	if (!is_efficiency) {
-		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (z_log) {
-					c->SetLogz(true);
-				}
-				c->cd();
-				TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
-				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
-				cloned_hist->Draw("colz");
-				c->SaveAs(("plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-				if (save_as_root) {
-					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
-					cloned_hist->Write();
-					out_file->Close();
-				}
-			}
-		}
-	}
-	else {
-		for (unsigned int region_idx = 0; region_idx < regions->size(); region_idx++) {
-			for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
-				TCanvas* c = new TCanvas((regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas").c_str());
-				if (z_log) {
-					c->SetLogz(true);
-				}
-				c->cd();
-				TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
-				TH2D* cloned_denominator = static_cast<TH2D*>(twodim_denominator_histograms[sample_idx][region_idx]->Clone());
-				cloned_hist->Divide(cloned_denominator);
-				cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
-				cloned_hist->Draw("colz");
-				c->SaveAs(("plots/eff_"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension).c_str());
-				if (save_as_root) {
-					TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
-					TH2D* cloned_numerator = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
-					cloned_numerator->Write();
-					cloned_denominator->Write();
-					cloned_hist->Write();
-					out_file->Close();
-				}
-			}
-		}
-	}
+void PlotCollection::draw_efficiency_plot_single_region(unsigned int region_idx) {
+  for (unsigned int sample_idx = 0; sample_idx < histograms.size(); sample_idx++) {
+    std::string canvas_name = name+"_"+samples[sample_idx]->sample_name+"_canvas";
+    if (regions != nullptr) canvas_name = name+"_"+regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas";
+    TCanvas* c = new TCanvas(canvas_name.c_str());
+    if (x_log)
+      c->SetLogx(true);	
+    if (y_log) 
+      c->SetLogy(true);
+    c->cd();
+    TH1D* cloned_numerator = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
+    TH1D* cloned_denominator = static_cast<TH1D*>(denominator_histograms[sample_idx][region_idx]->Clone());
+    TGraphAsymmErrors* hist_ratio = new TGraphAsymmErrors(cloned_numerator,cloned_denominator,"cp");
+    hist_ratio->SetTitle((samples[sample_idx]->sample_description+" "+cloned_numerator->GetTitle()).c_str());
+    hist_ratio->GetXaxis()->SetTitle(cloned_numerator->GetXaxis()->GetTitle());
+    hist_ratio->GetYaxis()->SetTitle(cloned_numerator->GetYaxis()->GetTitle());
+    hist_ratio->Draw("AP");
+    std::string file_name = "plots/eff_"+name+"_"+samples[sample_idx]->sample_name+"."+file_extension;
+    if (regions != nullptr) file_name = "plots/eff_"+name+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension;
+    c->SaveAs(file_name.c_str());
+    if (save_as_root) {
+      TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
+      cloned_numerator->Write();
+      cloned_denominator->Write();
+      hist_ratio->Write();
+      out_file->Close();
+    }
+  }
+}
+
+/**
+ * function to draw a 2d histogram for a single region
+ */
+void PlotCollection::draw_2d_histogram_single_region(unsigned int region_idx) {
+  for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
+    std::string canvas_name = name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_canvas";
+    if (regions != nullptr) canvas_name = name+"_"+yname+"_"+regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas";
+    TCanvas* c = new TCanvas(canvas_name.c_str());
+    if (z_log) {
+      c->SetLogz(true);
+    }
+    c->cd();
+    TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
+    cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
+    cloned_hist->Draw("colz");
+    std::string file_name = "plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"."+file_extension;
+    if (regions != nullptr) file_name = "plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension;
+    c->SaveAs(file_name.c_str());
+    if (save_as_root) {
+      TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
+      cloned_hist->Write();
+      out_file->Close();
+    }
+  }
+}
+
+/**
+ * function to draw a 2d efficiency plot for a single region
+ */
+void PlotCollection::draw_2d_efficiency_plot_single_region(unsigned int region_idx) {
+  for (unsigned int sample_idx = 0; sample_idx < twodim_histograms.size(); sample_idx++) {
+    std::string canvas_name = name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_canvas";
+    if (regions != nullptr) canvas_name = name+"_"+yname+"_"+regions->get_name(region_idx)+"_"+samples[sample_idx]->sample_name+"_canvas";
+    TCanvas* c = new TCanvas(canvas_name.c_str());
+    if (z_log) {
+      c->SetLogz(true);
+    }
+    c->cd();
+    TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
+    TH2D* cloned_denominator = static_cast<TH2D*>(twodim_denominator_histograms[sample_idx][region_idx]->Clone());
+    cloned_hist->Divide(cloned_denominator);
+    cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
+    cloned_hist->Draw("colz");
+    std::string file_name = "plots/eff_"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"."+file_extension;
+    if (regions != nullptr) file_name = "plots/eff_"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"_"+regions->get_name(region_idx)+"."+file_extension;
+    c->SaveAs(file_name.c_str());
+    if (save_as_root) {
+      TFile *out_file = TFile::Open("ntuples/output.root","UPDATE");
+      TH2D* cloned_numerator = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
+      cloned_numerator->Write();
+      cloned_denominator->Write();
+      cloned_hist->Write();
+      out_file->Close();
+    }
+  }
 }
