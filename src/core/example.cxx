@@ -27,7 +27,7 @@ int el_n(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_
   return r_el_n;
 }
 //ColumnDefinition<int*(unsigned int const&, ROOT::VecOps::RVec<unsigned int>const &)> el_n("el_n",&fn_el_n,{"lep_n","lep_type"});
-std::vector<std::string> el_n_args = {"lep_n","lep_type"};
+const std::vector<std::string> el_n_args = {"lep_n","lep_type"};
 
 //function to get W boson mt in WZ->llln events
 float wcand_mt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi, float const &met_et, float const &met_phi) {
@@ -88,7 +88,7 @@ float wcand_mt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const
   return r_wcand_mt;
 }
 //ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, float const &, float const &) wcand_mt("wcand_mt",&fn_wcand_mt,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"});
-std::vector<std::string> wcand_mt_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"};
+const std::vector<std::string> wcand_mt_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi","met_et","met_phi"};
 
 //function to get Z boson mass in WZ->llln events
 float zcand_m(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const &lep_type, ROOT::VecOps::RVec<float> const &lep_pt, ROOT::VecOps::RVec<float> const &lep_eta, ROOT::VecOps::RVec<float> const &lep_phi) {
@@ -153,7 +153,7 @@ float zcand_m(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> const 
   return r_zcand_m;
 }
 //ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &) zcand_m("zcand_m",&fn_zcand_m,{"lep_n","lep_type","lep_pt","lep_eta","lep_phi"});
-std::vector<std::string> zcand_m_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi"};
+const std::vector<std::string> zcand_m_args = {"lep_n","lep_type","lep_pt","lep_eta","lep_phi"};
 
 
 //return pt of highest pt electron
@@ -167,7 +167,7 @@ float max_el_pt(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int> cons
   return r_max_el_pt;
 }
 //ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &)> max_el_pt("max_el_pt",&fn_max_el_pt,{"lep_n","lep_type","lep_pt"});
-std::vector<std::string> max_el_pt_args = {"lep_n","lep_type","lep_pt"};
+const std::vector<std::string> max_el_pt_args = {"lep_n","lep_type","lep_pt"};
 
 
 //return |eta| of highest pt electron
@@ -183,40 +183,42 @@ float max_el_abs_eta(unsigned int const &lep_n, ROOT::VecOps::RVec<unsigned int>
   return TMath::Abs(r_max_el_eta);
 }
 //ColumnDefinition<float*(unsigned int const &, ROOT::VecOps::RVec<unsigned int> const &, ROOT::VecOps::RVec<float> const &, ROOT::VecOps::RVec<float> const &)> max_el_abs_eta("max_el_abs_eta",&fn_max_el_abs_eta,{"lep_n","lep_type","lep_pt","lep_eta"});
-std::vector<std::string> max_el_abs_eta_args = {"lep_n","lep_type","lep_pt","lep_eta"};
+const std::vector<std::string> max_el_abs_eta_args = {"lep_n","lep_type","lep_pt","lep_eta"};
 
 int main() {
 	//enable multi-threading
 	//ROOT::EnableImplicitMT();
 	//defined samples and add to a sample collection
 	std::cout << "Initializing samples" << std::endl;
-	SampleWrapper *wz1 = (new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",35.6/2.,false,"mini"))->add_flag("mc");
-	SampleWrapper *wz2 = (new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",35.6/2.,false,"mini"))->add_flag("mc");
-	SampleWrapper *wz_data = (new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",35.6,true,"mini"))->add_flag("pseudodata");
+	SampleWrapper *wz1 = (new SampleWrapper("wz1",{"/homes/oshiro/trees/mc_105987.WZ.root"},kRed,"wz1",false,"mini"))->add_flag("mc")->set_cross_section(4.430);
+	SampleWrapper *wz2 = (new SampleWrapper("wz2",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlue,"wz2",false,"mini"))->add_flag("mc")->set_cross_section(4.430);
+	SampleWrapper *wz_data = (new SampleWrapper("wz_data",{"/homes/oshiro/trees/mc_105987.WZ.root"},kBlack,"wz_data",true,"mini"))->add_flag("pseudodata");
 	SampleCollection *samples = new SampleCollection();
 	samples->add(wz1);
 	samples->add(wz2);
 	samples->add(wz_data);
 	//add a filter and define new columns
 	std::cout << "Defining variables and adding filters" << std::endl;
-	samples->filter("lep_n>0","N_{l}>0");
 	samples->define("el_n",el_n,el_n_args);
 	samples->define("wcand_mt",wcand_mt,wcand_mt_args);
 	samples->define("zcand_m",zcand_m,zcand_m_args);
 	samples->define("max_el_pt",max_el_pt,max_el_pt_args);
 	//scale wz_data since we are using this in lieu of real data
 	samples->define("weight","mcWeight",{"mc"});
-	samples->define("weight","mcWeight*35.6",{"pseudodata"});
+	samples->define("weight","mcWeight*35.6*2*0.009083",{"pseudodata"}); //hard code normalization for pseudo-data, double the yield
+	samples->set_luminosity(36.5);
+	samples->set_weight_branches("weight");
+	samples->filter("lep_n>0","N_{l}>0");
 	//define a region collection in which to make plots
 	RegionCollection * regions = new RegionCollection();
 	regions->add("nl3","lep_n==3","N_{l} = 3");
 	std::cout << "Booking plots and tables" << std::endl;
 	//book plots
-	PlotCollection* w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),"weight",regions);
-	PlotCollection* z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),"weight",regions);
-	PlotCollection* max_el_pt_histogram = samples->book_1d_histogram(VariableAxis("max_el_pt","Leading Electron p_{T}",60,0,100000,"MeV"),"weight");
+	PlotCollection* w_histogram = samples->book_1d_histogram(VariableAxis("wcand_mt","W Candidate m_{T}",60,0,120000,"MeV"),regions);
+	PlotCollection* z_histogram = samples->book_1d_histogram(VariableAxis("zcand_m","Z Candidate m",60,0,120000,"MeV"),regions);
+	PlotCollection* max_el_pt_histogram = samples->book_1d_histogram(VariableAxis("max_el_pt","Leading Electron p_{T}",60,0,100000,"MeV"));
 	samples->filter("el_n>=1","N_{e}#geq 1");
-	PlotCollection* elpt_eff_plot = samples->book_1d_efficiency_plot(VariableAxis("max_el_pt","Leading Electron p_{T}",10,10000.,110000.,"MeV"),"weight","trigE","Electron Trigger");
+	PlotCollection* elpt_eff_plot = samples->book_1d_efficiency_plot(VariableAxis("max_el_pt","Leading Electron p_{T}",10,10000.,110000.,"MeV"),"trigE","Electron Trigger");
 	//generate cutflow
 	samples->filter("lep_n>=3","N_{l} #geq 3");
 	samples->filter("zcand_m>81000&&zcand_m<101000","Z mass cut");

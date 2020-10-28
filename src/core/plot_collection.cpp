@@ -240,7 +240,7 @@ void PlotCollection::draw_together_single_region(bool sort_histograms, bool is_r
       ordered_histograms[sample_idx].histogram = static_cast<TH1D*>((histograms[sample_idx][region_idx])->Clone());
       //scale MC by lumi
       if (!samples[sample_idx]->is_data)
-        ordered_histograms[sample_idx].histogram->Scale(samples[sample_idx]->luminosity);
+        ordered_histograms[sample_idx].histogram->Scale(samples[sample_idx]->scale_weight());
       ordered_histograms[sample_idx].color = samples[sample_idx]->sample_color;
       ordered_histograms[sample_idx].description = samples[sample_idx]->sample_description;
       ordered_histograms[sample_idx].is_data = samples[sample_idx]->is_data;
@@ -437,6 +437,9 @@ void PlotCollection::draw_histogram_single_region(unsigned int region_idx) {
     }
     c->cd();
     TH1D* cloned_hist = static_cast<TH1D*>(histograms[sample_idx][region_idx]->Clone());
+    //scale MC by lumi
+    if (!samples[sample_idx]->is_data)
+      cloned_hist->Scale(samples[sample_idx]->scale_weight());
     cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
     cloned_hist->Draw("e0");
     std::string file_name = "plots/"+name+"_"+samples[sample_idx]->sample_name+"."+file_extension;
@@ -496,6 +499,9 @@ void PlotCollection::draw_2d_histogram_single_region(unsigned int region_idx) {
     }
     c->cd();
     TH2D* cloned_hist = static_cast<TH2D*>(twodim_histograms[sample_idx][region_idx]->Clone());
+    //scale MC by lumi
+    if (!samples[sample_idx]->is_data)
+      cloned_hist->Scale(samples[sample_idx]->scale_weight());
     cloned_hist->SetTitle((samples[sample_idx]->sample_description+" "+cloned_hist->GetTitle()).c_str());
     cloned_hist->Draw("colz");
     std::string file_name = "plots/"+name+"_"+yname+"_"+samples[sample_idx]->sample_name+"."+file_extension;

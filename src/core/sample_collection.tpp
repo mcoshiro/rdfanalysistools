@@ -5,7 +5,7 @@
  * flags argument can be used to only define colums for certain samples
  */
 template<typename F>
-void SampleCollection::define(const char* name, F expression, std::vector<std::string> columns, std::vector<std::string> flags) {
+SampleCollection* SampleCollection::define(const char* name, F expression, const std::vector<std::string> columns, std::vector<std::string> flags) {
   if (flags.size() > 0) {
     //if flags provided, define this column only for samples with flag flag
     for (unsigned int sample_idx = 0; sample_idx < samples.size(); sample_idx++) {
@@ -23,6 +23,7 @@ void SampleCollection::define(const char* name, F expression, std::vector<std::s
       samples[sample_idx]->data_frame() = samples[sample_idx]->data_frame().Define(name, expression, columns);
     }
   }
+  return this;
 }
 
 ///**

@@ -34,20 +34,20 @@ class SampleCollection {
     /**
      * method to add a sample to the collection
      */
-    void add(SampleWrapper* sample);
+    SampleCollection* add(SampleWrapper* sample);
     
     /**
      * method to define data frame columns, see RInterface::Define
      * flags argument can be used to only define colums for certain samples
      */
-    void define(const char* name, const char* expression, std::vector<std::string> flags={});
+    SampleCollection* define(const char* name, const char* expression, std::vector<std::string> flags={});
     
     /**
      * method to define data frame columns, see RInterface::Define
      * flags argument can be used to only define colums for certain samples
      */
     template<typename F>
-    void define(const char* name, F expression, std::vector<std::string> columns, std::vector<std::string> flags={});
+    SampleCollection* define(const char* name, F expression, const std::vector<std::string> columns, std::vector<std::string> flags={});
 
     ///**
     // * method to define data frame columns, see RInterface::Define
@@ -60,27 +60,39 @@ class SampleCollection {
      * method to filter data frames, see RInterface::Filter
      * flags argument can be used to only filter certain samples
      */
-    void filter(std::string expression, std::string filter_description="", std::vector<std::string> flags={});
+    SampleCollection* filter(std::string expression, std::string filter_description="", std::vector<std::string> flags={});
+
+    /**
+     * method to set luminosity
+     */
+    SampleCollection* set_luminosity(float luminosity, std::vector<std::string> flags={});
+
+    /**
+     * method that sets weights to use when making tables/plots
+     * lumi_weight_column_name is the name of the column to use when normalizing weights i.e. this is the weight that does NOT model inefficiency
+     * full_weight_column_name is the name of the column to use when weighting event; if unspecified, lumi_weight_column_name will be used
+     */
+    SampleCollection* set_weight_branches(std::string lumi_weight_column_name, std::string full_weight_column_name="", std::vector<std::string> flags={});
     
     /**
      * method to make 1d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo1D
      */
-    PlotCollection* book_1d_histogram(VariableAxis axis, std::string_view weight, RegionCollection* regions=nullptr);
+    PlotCollection* book_1d_histogram(VariableAxis axis, RegionCollection* regions=nullptr);
     
     /**
      * method to make 1d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo1D
      */
-    PlotCollection* book_1d_efficiency_plot(VariableAxis axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
+    PlotCollection* book_1d_efficiency_plot(VariableAxis axis, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
     
     /**
      * method to make 2d histograms of variable with weight weight in each region specified by regions, see RInterface::Histo2D
      */
-    PlotCollection* book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, RegionCollection* regions=nullptr);
+    PlotCollection* book_2d_histogram(VariableAxis x_axis, VariableAxis y_axis, RegionCollection* regions=nullptr);
     
     /**
      * method to make 2d efficiency plots of variable with weight weight in each region specified by regions, see RInterface::Histo2D
      */
-    PlotCollection* book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string_view weight, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
+    PlotCollection* book_2d_efficiency_plot(VariableAxis x_axis, VariableAxis y_axis, std::string numerator_cut, std::string numerator_description, RegionCollection* regions=nullptr);
     
     /**
      * method to make cutflow table
